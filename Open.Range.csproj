@@ -1,7 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp1.1</TargetFramework>
+    <Authors>electricessence</Authors>
+    <Company />
+    <Product />
+    <Description>Range&lt;T&gt; implementation with useful extensions.  Useful for ranged value data-sets.
+
+Part of the "Open" set of libraries.</Description>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
   </PropertyGroup>
 
 </Project>
