@@ -9,6 +9,12 @@
 
 Part of the "Open" set of libraries.</Description>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <Copyright>https://github.com/electricessence/Open.Range/blob/master/LISCENSE.md</Copyright>
+    <PackageLicenseUrl>https://github.com/electricessence/Open.Range/blob/master/LISCENSE.md</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/electricessence/Open.Range/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/electricessence/Open.Range/</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>dotnet, dotnet-core, dotnetcore, cs, range, data</PackageTags>
   </PropertyGroup>
 
 </Project>
