@@ -17,4 +17,8 @@ Part of the "Open" set of libraries.</Description>
     <PackageTags>dotnet, dotnet-core, dotnetcore, cs, range, data</PackageTags>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Open.Arithmetic" Version="1.0.0" />
+  </ItemGroup>
+
 </Project>
