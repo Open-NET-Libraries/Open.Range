@@ -20,6 +20,14 @@ Part of the "Open" set of libraries.</Description>
     <PackageReleaseNotes>Updated to .NET Standard for compatability.</PackageReleaseNotes>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <None Remove=".gitignore" />
     <None Remove="LISCENSE.md" />
@@ -27,7 +35,7 @@ Part of the "Open" set of libraries.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Open.Arithmetic" Version="1.1.0" />
+    <PackageReference Include="Open.Arithmetic" Version="1.1.1" />
   </ItemGroup>
 
 </Project>

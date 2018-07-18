@@ -228,10 +228,10 @@ namespace Open
 				throw new ArgumentNullException(nameof(selector));
 			Contract.EndContractBlock();
 
-			DateTime max = DateTime.MinValue;
-			DateTime min = DateTime.MaxValue;
+			var max = DateTime.MinValue;
+			var min = DateTime.MaxValue;
 
-			bool hasItems = false;
+			var hasItems = false;
 
 			if (items != null)
 			{
@@ -254,12 +254,12 @@ namespace Open
 
 		public static Range<double> Range(this IEnumerable<double> values)
 		{
-			double max = double.NegativeInfinity;
-			double min = double.PositiveInfinity;
+			var max = double.NegativeInfinity;
+			var min = double.PositiveInfinity;
 
 			if (values != null)
 			{
-				foreach (double value in values)
+				foreach (var value in values)
 				{
 					if (!double.IsNaN(value))
 					{
@@ -284,8 +284,8 @@ namespace Open
 				throw new ArgumentNullException(nameof(selector));
 			Contract.EndContractBlock();
 
-			double max = double.NegativeInfinity;
-			double min = double.PositiveInfinity;
+			var max = double.NegativeInfinity;
+			var min = double.PositiveInfinity;
 
 			if (items != null)
 			{
@@ -312,15 +312,15 @@ namespace Open
 				throw new ArgumentNullException(nameof(selector));
 			Contract.EndContractBlock();
 
-			double max = double.NegativeInfinity;
-			double min = double.PositiveInfinity;
+			var max = double.NegativeInfinity;
+			var min = double.PositiveInfinity;
 
 			if (items != null)
 			{
-				object templockMin = new Object(), templockMax = new Object();
+				object templockMin = new object(), templockMax = new object();
 				items.ForAll(item =>
 			   {
-				   double value = selector(item);
+				   var value = selector(item);
 				   if (!double.IsNaN(value))
 				   {
 					   lock (templockMin)
@@ -683,7 +683,7 @@ namespace Open
 			var startDate = target.Low;
 			var endDate = target.High;
 
-			for (DateTime d = startDate; d < endDate; d = d.AddDays(1).Date)
+			for (var d = startDate; d < endDate; d = d.AddDays(1).Date)
 				yield return d.Date;
 		}
 
