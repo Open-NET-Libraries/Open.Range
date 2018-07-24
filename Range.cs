@@ -1,16 +1,18 @@
 ﻿using Open.Arithmetic.Dynamic;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
+using System.Globalization;
 using System.Linq;
 
 namespace Open
 {
+	[SuppressMessage("ReSharper", "UnusedMemberInSuper.Global")]
 	public interface IDateTimeIndexed
 	{
 		DateTime DateTime { get; }
 	}
-
 
 	public interface IRange<out T>
 	{
@@ -18,104 +20,60 @@ namespace Open
 		T High { get; }
 	}
 
-
-
 	public interface IRangeFlexible<T> : IRange<T>
 	{
 		void UpdateLow(T value);
 		void UpdateHigh(T value);
 	}
 
-
-
 	public interface IRangeTimeIndexed<out T> : IDateTimeIndexed, IRange<T> { }
-
-
 
 	public struct Range<T> : IRange<T>
 	{
-		private readonly T _high;
-		private readonly T _low;
-
 		public Range(T low, T high)
 		{
-			_low = low;
-			_high = high;
+			Low = low;
+			High = high;
 		}
 
 		public Range(T equal)
 			: this(equal, equal) { }
 
-
 		#region IRange<TLock> Members
-		public T Low
-		{
-			get { return _low; }
-		}
-
-		public T High
-		{
-			get { return _high; }
-		}
+		public T Low { get; }
+		public T High { get; }
 		#endregion
 
-
 		public override string ToString()
-		{
-			return _low.ToString() + "-" + _high.ToString();
-		}
-
+			=> Low + "-" + High;
 	}
 
 	public struct RangeWithValue<T, TValue> : IRange<T>
 	{
-		private readonly T _high;
-		private readonly T _low;
-		private readonly TValue _value;
-
 		public RangeWithValue(T low, T high, TValue value)
 		{
-			_low = low;
-			_high = high;
-			_value = value;
+			Low = low;
+			High = high;
+			Value = value;
 		}
 
 		#region IRange<TLock> Members
-		public T Low
-		{
-			get { return _low; }
-		}
-
-		public T High
-		{
-			get { return _high; }
-		}
-
-		public TValue Value
-		{
-			get { return _value; }
-		}
-
+		public T Low { get; }
+		public T High { get; }
+		public TValue Value { get; }
 		#endregion
 
 		public override string ToString()
-		{
-			return _low.ToString() + "-" + _high.ToString() + "(" + _value.ToString() + ")";
-		}
-
+			=> Low + "-" + High + "(" + Value + ")";
 	}
 
 	public struct RangeTimeIndexed<T> : IRangeTimeIndexed<T>
 	{
-		private readonly DateTime _dateTime;
-		private readonly T _high;
-		private readonly T _low;
-
 		public RangeTimeIndexed(DateTime datetime, T low, T high)
 		{
-			_dateTime = datetime;
-			_low = low;
-			_high = high;
+			DateTime = datetime;
+			Low = low;
+			High = high;
 		}
 
 		public RangeTimeIndexed(DateTime datetime, T equal)
@@ -123,83 +81,43 @@ namespace Open
 
 
 		#region IRange<TLock> Members
-		public T Low
-		{
-			get { return _low; }
-		}
-
-		public T High
-		{
-			get { return _high; }
-		}
+		public T Low { get; }
+		public T High { get; }
 		#endregion
-
-
-		public override string ToString()
-		{
-			return _dateTime.ToString() + ":" + _low.ToString() + "-" + _high.ToString();
-		}
-
 
 		#region IDateTimeIndexed Members
-
-		public DateTime DateTime
-		{
-			get { return _dateTime; }
-		}
-
+		public DateTime DateTime { get; }
 		#endregion
+
+		public override string ToString()
+			=> DateTime.ToString(CultureInfo.InvariantCulture) + ':' + Low + '-' + High;
+
 	}
 
 	public struct RangeTimeIndexedWithValue<T> : IRangeTimeIndexed<T>
 	{
-		private readonly DateTime _dateTime;
-		private readonly T _high;
-		private readonly T _low;
-		private readonly T _value;
-
 		public RangeTimeIndexedWithValue(DateTime datetime, T low, T high, T value)
 		{
-			_dateTime = datetime;
-			_low = low;
-			_high = high;
-			_value = value;
+			DateTime = datetime;
+			Low = low;
+			High = high;
+			Value = value;
 		}
 
 		public RangeTimeIndexedWithValue(DateTime datetime, T equal)
 			: this(datetime, equal, equal, equal) { }
 
-
 		#region IRange<TLock> Members
-		public T Low
-		{
-			get { return _low; }
-		}
-
-		public T High
-		{
-			get { return _high; }
-		}
-		public T Value
-		{
-			get { return _value; }
-		}
+		public T Low { get; }
+		public T High { get; }
+		public T Value { get; }
 		#endregion
 
-
 		public override string ToString()
-		{
-			return _dateTime.ToString() + ":" + _low.ToString() + "-" + _high.ToString() + "(" + _value.ToString() + ")";
-		}
-
+			=> $"{DateTime.ToString(CultureInfo.InvariantCulture)}:{Low}-{High}({Value})";
 
 		#region IDateTimeIndexed Members
-
-		public DateTime DateTime
-		{
-			get { return _dateTime; }
-		}
-
+		public DateTime DateTime { get; }
 		#endregion
 	}
 
@@ -233,17 +151,14 @@ namespace Open
 
 			var hasItems = false;
 
-			if (items != null)
+			foreach (var item in items)
 			{
-				foreach (var item in items)
-				{
-					hasItems = true;
-					var value = selector(item);
-					if (value < min)
-						min = value;
-					if (value > max)
-						max = value;
-				}
+				hasItems = true;
+				var value = selector(item);
+				if (value < min)
+					min = value;
+				if (value > max)
+					max = value;
 			}
 
 			if (!hasItems)
@@ -254,21 +169,20 @@ namespace Open
 
 		public static Range<double> Range(this IEnumerable<double> values)
 		{
+			if (values == null)
+				throw new NullReferenceException();
+			Contract.EndContractBlock();
+
 			var max = double.NegativeInfinity;
 			var min = double.PositiveInfinity;
 
-			if (values != null)
+			foreach (var value in values)
 			{
-				foreach (var value in values)
-				{
-					if (!double.IsNaN(value))
-					{
-						if (value < min)
-							min = value;
-						if (value > max)
-							max = value;
-					}
-				}
+				if (double.IsNaN(value)) continue;
+				if (value < min)
+					min = value;
+				if (value > max)
+					max = value;
 			}
 
 			return max < min ?
@@ -287,16 +201,13 @@ namespace Open
 			var max = double.NegativeInfinity;
 			var min = double.PositiveInfinity;
 
-			if (items != null)
+			foreach (var item in items)
 			{
-				foreach (var item in items)
-				{
-					var value = selector(item);
-					if (value < min)
-						min = value;
-					if (value > max)
-						max = value;
-				}
+				var value = selector(item);
+				if (value < min)
+					min = value;
+				if (value > max)
+					max = value;
 			}
 
 			return max < min ?
@@ -315,23 +226,18 @@ namespace Open
 			var max = double.NegativeInfinity;
 			var min = double.PositiveInfinity;
 
-			if (items != null)
+			object templockMin = new object(), templockMax = new object();
+			items.ForAll(item =>
 			{
-				object templockMin = new object(), templockMax = new object();
-				items.ForAll(item =>
-			   {
-				   var value = selector(item);
-				   if (!double.IsNaN(value))
-				   {
-					   lock (templockMin)
-						   if (value < min)
-							   min = value;
-					   lock (templockMax)
-						   if (value > max)
-							   max = value;
-				   }
-			   });
-			}
+				var value = selector(item);
+				if (double.IsNaN(value)) return;
+				lock (templockMin)
+					if (value < min)
+						min = value;
+				lock (templockMax)
+					if (value > max)
+						max = value;
+			});
 
 			return max < min ?
 				new Range<double>(double.NaN, double.NaN) :
@@ -621,7 +527,9 @@ namespace Open
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
-			return includeLimits ? (value >= target.Low && value <= target.High) : (value > target.Low && value < target.High);
+			return includeLimits
+				? (value >= target.Low && value <= target.High)
+				: (value > target.Low && value < target.High);
 		}
 
 		public static bool IsInRange(this IRange<DateTime> target, DateTime value, bool includeLimits = false)
@@ -630,7 +538,9 @@ namespace Open
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
-			return includeLimits ? (value >= target.Low && value <= target.High) : (value > target.Low && value < target.High);
+			return includeLimits
+				? (value >= target.Low && value <= target.High)
+				: (value > target.Low && value < target.High);
 		}
 
 		public static bool IsInRange(this IRange<int> target, int value, bool includeLimits = false)
@@ -639,7 +549,9 @@ namespace Open
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
-			return includeLimits ? (value >= target.Low && value <= target.High) : (value > target.Low && value < target.High);
+			return includeLimits
+				? (value >= target.Low && value <= target.High)
+				: (value > target.Low && value < target.High);
 		}
 
 		public static bool IsInRange(this IRange<float> target, float value, bool includeLimits = false)
@@ -648,7 +560,9 @@ namespace Open
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
-			return includeLimits ? (value >= target.Low && value <= target.High) : (value > target.Low && value < target.High);
+			return includeLimits
+				? (value >= target.Low && value <= target.High)
+				: (value > target.Low && value < target.High);
 		}
 
 		public static bool IsInRange(this IRange<double> target, double value, bool includeLimits = false)
@@ -657,7 +571,9 @@ namespace Open
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
-			return includeLimits ? (value >= target.Low && value <= target.High) : (value > target.Low && value < target.High);
+			return includeLimits
+				? (value >= target.Low && value <= target.High)
+				: (value > target.Low && value < target.High);
 		}
 
 		public static bool IsInRange<T>(this IRange<T> target, T value, bool includeLimits = false)
@@ -689,15 +605,14 @@ namespace Open
 
 		public static void UpdateMinMax(this double value, ref double min, ref double max)
 		{
-			if (!double.IsNaN(value))
-			{
-				if (value < min) min = value;
-				if (value > max) max = value;
-			}
+			if (double.IsNaN(value)) return;
+			if (value < min) min = value;
+			if (value > max) max = value;
 		}
 
 		public static double Transpose(this double value, double min, double max, double newMin, double newMax)
 		{
+			// ReSharper disable once CompareOfFloatsByEqualityOperator
 			if (min == max)
 				return double.NaN;
 
@@ -710,9 +625,7 @@ namespace Open
 		}
 
 		public static double Transpose(this double value, Range<double> source, Range<double> target)
-		{
-			return value.Transpose(source.Low, source.High, target.Low, target.High);
-		}
+			=> value.Transpose(source.Low, source.High, target.Low, target.High);
 
 	}
 

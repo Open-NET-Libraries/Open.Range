@@ -15,9 +15,9 @@ Part of the "Open" set of libraries.</Description>
     <RepositoryUrl>https://github.com/electricessence/Open.Range/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>dotnet, dotnet-core, dotnetcore, cs, range, data</PackageTags>
-    <Version>1.1.0</Version>
-    <AssemblyVersion>1.1.0.0</AssemblyVersion>
-    <PackageReleaseNotes>Updated to .NET Standard for compatability.</PackageReleaseNotes>
+    <Version>1.2.0</Version>
+    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <PackageReleaseNotes>Dependency updates and inspection fixes.</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -35,7 +35,7 @@ Part of the "Open" set of libraries.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Open.Arithmetic" Version="1.1.1" />
+    <PackageReference Include="Open.Arithmetic" Version="1.2.0" />
   </ItemGroup>
 
 </Project>
