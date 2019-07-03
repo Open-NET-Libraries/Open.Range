@@ -10,14 +10,15 @@
 Part of the "Open" set of libraries.</Description>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <Copyright>https://github.com/electricessence/Open.Range/blob/master/LISCENSE.md</Copyright>
-    <PackageLicenseUrl>https://github.com/electricessence/Open.Range/blob/master/LISCENSE.md</PackageLicenseUrl>
+    <PackageLicenseUrl></PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/electricessence/Open.Range/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/electricessence/Open.Range/</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>dotnet, dotnet-core, dotnetcore, cs, range, data</PackageTags>
-    <Version>1.2.0</Version>
-    <AssemblyVersion>1.2.0.0</AssemblyVersion>
+    <Version>1.2.1</Version>
+    <AssemblyVersion>1.2.1.0</AssemblyVersion>
     <PackageReleaseNotes>Dependency updates and inspection fixes.</PackageReleaseNotes>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -35,7 +36,7 @@ Part of the "Open" set of libraries.</Description>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Open.Arithmetic" Version="1.2.0" />
+    <PackageReference Include="Open.Arithmetic" Version="1.4.0" />
   </ItemGroup>
 
 </Project>
