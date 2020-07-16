@@ -1,42 +1,47 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <Authors>electricessence</Authors>
-    <Company />
-    <Product />
-    <Description>Range&lt;T&gt; implementation with useful extensions.  Useful for ranged value data-sets.
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<Authors>electricessence</Authors>
+		<Description>Range&lt;T&gt; implementation with useful extensions.  Useful for ranged value data-sets.
 
 Part of the "Open" set of libraries.</Description>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <Copyright>https://github.com/electricessence/Open.Range/blob/master/LISCENSE.md</Copyright>
-    <PackageLicenseUrl></PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/electricessence/Open.Range/</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/electricessence/Open.Range/</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageTags>dotnet, dotnet-core, dotnetcore, cs, range, data</PackageTags>
-    <Version>1.2.1</Version>
-    <AssemblyVersion>1.2.1.0</AssemblyVersion>
-    <PackageReleaseNotes>Dependency updates and inspection fixes.</PackageReleaseNotes>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
-  </PropertyGroup>
+		<PackageTags>range;ranged values;data</PackageTags>
+		<Copyright>© electricessence (Oren F.) All rights reserved.</Copyright>
+		<PackageProjectUrl>https://github.com/Open-NET-Libraries/Open.Range/</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/Open-NET-Libraries/Open.Range/</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<Version>1.3.0</Version>
+		<PackageReleaseNotes></PackageReleaseNotes>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PublishRepositoryUrl>true</PublishRepositoryUrl>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<PackageIcon>logo.png</PackageIcon>
+	</PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All" />
+	</ItemGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
+	<ItemGroup>
+		<None Remove=".git" />
+		<None Remove=".gitignore" />
+		<None Include="logo.png">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
 
-  <ItemGroup>
-    <None Remove=".gitignore" />
-    <None Remove="LISCENSE.md" />
-    <None Remove="README.md" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Open.Arithmetic" Version="1.4.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Open.Arithmetic" Version="1.5.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="3.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
 
 </Project>

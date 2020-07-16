@@ -28,7 +28,7 @@ namespace Open
 
 	public interface IRangeTimeIndexed<out T> : IDateTimeIndexed, IRange<T> { }
 
-	public struct Range<T> : IRange<T>
+	public struct Range<T> : IRange<T>, IEquatable<Range<T>>
 	{
 		public Range(T low, T high)
 		{
@@ -46,9 +46,27 @@ namespace Open
 
 		public override string ToString()
 			=> Low + "-" + High;
+
+		public bool Equals(Range<T> range)
+			=> EqualityComparer<T>.Default.Equals(Low, range.Low)
+			&& EqualityComparer<T>.Default.Equals(High, range.High);
+
+		public override bool Equals(object range)
+			=> range is Range<T> r && Equals(r);
+
+		public override int GetHashCode()
+		{
+			int hashCode = -1778393754;
+			hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(Low);
+			hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(High);
+			return hashCode;
+		}
+
+		public static bool operator ==(Range<T> left, Range<T> right) => left.Equals(right);
+		public static bool operator !=(Range<T> left, Range<T> right) => !left.Equals(right);
 	}
 
-	public struct RangeWithValue<T, TValue> : IRange<T>
+	public struct RangeWithValue<T, TValue> : IRange<T>, IEquatable<RangeWithValue<T, TValue>>
 	{
 		public RangeWithValue(T low, T high, TValue value)
 		{
@@ -65,9 +83,30 @@ namespace Open
 
 		public override string ToString()
 			=> Low + "-" + High + "(" + Value + ")";
+
+		public bool Equals(RangeWithValue<T, TValue> range)
+			=> EqualityComparer<T>.Default.Equals(Low, range.Low)
+			&& EqualityComparer<T>.Default.Equals(High, range.High)
+			&& EqualityComparer<TValue>.Default.Equals(Value, range.Value);
+
+		public override bool Equals(object range)
+			=> range is RangeWithValue<T, TValue> r && Equals(r);
+
+		public override int GetHashCode()
+		{
+			int hashCode = 212028608;
+			hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(Low);
+			hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(High);
+			hashCode = hashCode * -1521134295 + EqualityComparer<TValue>.Default.GetHashCode(Value);
+			return hashCode;
+		}
+
+		public static bool operator ==(RangeWithValue<T, TValue> left, RangeWithValue<T, TValue> right) => left.Equals(right);
+		public static bool operator !=(RangeWithValue<T, TValue> left, RangeWithValue<T, TValue> right) => !left.Equals(right);
+
 	}
 
-	public struct RangeTimeIndexed<T> : IRangeTimeIndexed<T>
+	public struct RangeTimeIndexed<T> : IRangeTimeIndexed<T>, IEquatable<RangeTimeIndexed<T>>
 	{
 		public RangeTimeIndexed(DateTime datetime, T low, T high)
 		{
@@ -92,9 +131,28 @@ namespace Open
 		public override string ToString()
 			=> DateTime.ToString(CultureInfo.InvariantCulture) + ':' + Low + '-' + High;
 
+		public bool Equals(RangeTimeIndexed<T> range)
+			=> EqualityComparer<T>.Default.Equals(Low, range.Low)
+			&& EqualityComparer<T>.Default.Equals(High, range.High)
+			&& DateTime.Equals(range.DateTime);
+
+		public override bool Equals(object range)
+			=> range is RangeTimeIndexed<T> r && Equals(r);
+
+		public override int GetHashCode()
+		{
+			int hashCode = -683161626;
+			hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(Low);
+			hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(High);
+			hashCode = hashCode * -1521134295 + DateTime.GetHashCode();
+			return hashCode;
+		}
+
+		public static bool operator ==(RangeTimeIndexed<T> left, RangeTimeIndexed<T> right) => left.Equals(right);
+		public static bool operator !=(RangeTimeIndexed<T> left, RangeTimeIndexed<T> right) => !left.Equals(right);
 	}
 
-	public struct RangeTimeIndexedWithValue<T> : IRangeTimeIndexed<T>
+	public struct RangeTimeIndexedWithValue<T> : IRangeTimeIndexed<T>, IEquatable<RangeTimeIndexedWithValue<T>>
 	{
 		public RangeTimeIndexedWithValue(DateTime datetime, T low, T high, T value)
 		{
@@ -119,6 +177,29 @@ namespace Open
 		#region IDateTimeIndexed Members
 		public DateTime DateTime { get; }
 		#endregion
+
+		public bool Equals(RangeTimeIndexedWithValue<T> range)
+			=> EqualityComparer<T>.Default.Equals(Low, range.Low)
+			&& EqualityComparer<T>.Default.Equals(High, range.High)
+			&& EqualityComparer<T>.Default.Equals(Value, range.Value)
+			&& DateTime.Equals(range.DateTime);
+
+		public override bool Equals(object range)
+			=> range is RangeTimeIndexedWithValue<T> r && Equals(r);
+
+		public override int GetHashCode()
+		{
+			int hashCode = 374308688;
+			hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(Low);
+			hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(High);
+			hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(Value);
+			hashCode = hashCode * -1521134295 + DateTime.GetHashCode();
+			return hashCode;
+		}
+
+		public static bool operator ==(RangeTimeIndexedWithValue<T> left, RangeTimeIndexedWithValue<T> right) => left.Equals(right);
+		public static bool operator !=(RangeTimeIndexedWithValue<T> left, RangeTimeIndexedWithValue<T> right) => !left.Equals(right);
+
 	}
 
 
@@ -128,7 +209,7 @@ namespace Open
 
 		public static void RangeValue(this IRangeFlexible<double> target, double value)
 		{
-			if (target == null)
+			if (target is null)
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
@@ -140,9 +221,9 @@ namespace Open
 
 		public static Range<DateTime> Range<T>(this IEnumerable<T> items, Func<T, DateTime> selector)
 		{
-			if (items == null)
+			if (items is null)
 				throw new NullReferenceException();
-			if (selector == null)
+			if (selector is null)
 				throw new ArgumentNullException(nameof(selector));
 			Contract.EndContractBlock();
 
@@ -169,7 +250,7 @@ namespace Open
 
 		public static Range<double> Range(this IEnumerable<double> values)
 		{
-			if (values == null)
+			if (values is null)
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
@@ -192,9 +273,9 @@ namespace Open
 
 		public static Range<double> Range<T>(this IEnumerable<T> items, Func<T, double> selector)
 		{
-			if (items == null)
+			if (items is null)
 				throw new NullReferenceException();
-			if (selector == null)
+			if (selector is null)
 				throw new ArgumentNullException(nameof(selector));
 			Contract.EndContractBlock();
 
@@ -217,9 +298,9 @@ namespace Open
 
 		public static Range<double> Range<T>(this ParallelQuery<T> items, Func<T, double> selector)
 		{
-			if (items == null)
+			if (items is null)
 				throw new NullReferenceException();
-			if (selector == null)
+			if (selector is null)
 				throw new ArgumentNullException(nameof(selector));
 			Contract.EndContractBlock();
 
@@ -247,9 +328,9 @@ namespace Open
 		#region IRange<float> Arithmetic
 		public static IRange<float> AddRange(this IRange<float> r1, IRange<float> r2)
 		{
-			if (r1 == null)
+			if (r1 is null)
 				throw new NullReferenceException();
-			if (r2 == null)
+			if (r2 is null)
 				throw new ArgumentNullException(nameof(r2));
 			Contract.EndContractBlock();
 
@@ -258,9 +339,9 @@ namespace Open
 
 		public static IRange<float> SubtractRange(this IRange<float> r1, IRange<float> r2)
 		{
-			if (r1 == null)
+			if (r1 is null)
 				throw new NullReferenceException();
-			if (r2 == null)
+			if (r2 is null)
 				throw new ArgumentNullException(nameof(r2));
 			Contract.EndContractBlock();
 
@@ -269,9 +350,9 @@ namespace Open
 
 		public static IRange<float> MultiplyByRange(this IRange<float> r1, IRange<float> r2)
 		{
-			if (r1 == null)
+			if (r1 is null)
 				throw new NullReferenceException();
-			if (r2 == null)
+			if (r2 is null)
 				throw new ArgumentNullException(nameof(r2));
 			Contract.EndContractBlock();
 
@@ -280,9 +361,9 @@ namespace Open
 
 		public static IRange<float> DivideByRange(this IRange<float> r1, IRange<float> r2)
 		{
-			if (r1 == null)
+			if (r1 is null)
 				throw new NullReferenceException();
-			if (r2 == null)
+			if (r2 is null)
 				throw new ArgumentNullException(nameof(r2));
 			Contract.EndContractBlock();
 
@@ -293,9 +374,9 @@ namespace Open
 		#region IRange<double> Arithmetic
 		public static IRange<double> AddRange(this IRange<double> r1, IRange<double> r2)
 		{
-			if (r1 == null)
+			if (r1 is null)
 				throw new NullReferenceException();
-			if (r2 == null)
+			if (r2 is null)
 				throw new ArgumentNullException(nameof(r2));
 			Contract.EndContractBlock();
 
@@ -304,9 +385,9 @@ namespace Open
 
 		public static IRange<double> SubtractRange(this IRange<double> r1, IRange<double> r2)
 		{
-			if (r1 == null)
+			if (r1 is null)
 				throw new NullReferenceException();
-			if (r2 == null)
+			if (r2 is null)
 				throw new ArgumentNullException(nameof(r2));
 			Contract.EndContractBlock();
 
@@ -315,9 +396,9 @@ namespace Open
 
 		public static IRange<double> MultiplyByRange(this IRange<double> r1, IRange<double> r2)
 		{
-			if (r1 == null)
+			if (r1 is null)
 				throw new NullReferenceException();
-			if (r2 == null)
+			if (r2 is null)
 				throw new ArgumentNullException(nameof(r2));
 			Contract.EndContractBlock();
 
@@ -326,9 +407,9 @@ namespace Open
 
 		public static IRange<double> DivideByRange(this IRange<double> r1, IRange<float> r2)
 		{
-			if (r1 == null)
+			if (r1 is null)
 				throw new NullReferenceException();
-			if (r2 == null)
+			if (r2 is null)
 				throw new ArgumentNullException(nameof(r2));
 			Contract.EndContractBlock();
 
@@ -339,9 +420,9 @@ namespace Open
 		#region IRange<int> Arithmetic
 		public static IRange<int> AddRange(this IRange<int> r1, IRange<int> r2)
 		{
-			if (r1 == null)
+			if (r1 is null)
 				throw new NullReferenceException();
-			if (r2 == null)
+			if (r2 is null)
 				throw new ArgumentNullException(nameof(r2));
 			Contract.EndContractBlock();
 
@@ -350,9 +431,9 @@ namespace Open
 
 		public static IRange<int> SubtractRange(this IRange<int> r1, IRange<int> r2)
 		{
-			if (r1 == null)
+			if (r1 is null)
 				throw new NullReferenceException();
-			if (r2 == null)
+			if (r2 is null)
 				throw new ArgumentNullException(nameof(r2));
 			Contract.EndContractBlock();
 
@@ -361,9 +442,9 @@ namespace Open
 
 		public static IRange<int> MultiplyByRange(this IRange<int> r1, IRange<int> r2)
 		{
-			if (r1 == null)
+			if (r1 is null)
 				throw new NullReferenceException();
-			if (r2 == null)
+			if (r2 is null)
 				throw new ArgumentNullException(nameof(r2));
 			Contract.EndContractBlock();
 
@@ -372,9 +453,9 @@ namespace Open
 
 		public static IRange<int> DivideByRange(this IRange<int> r1, IRange<int> r2)
 		{
-			if (r1 == null)
+			if (r1 is null)
 				throw new NullReferenceException();
-			if (r2 == null)
+			if (r2 is null)
 				throw new ArgumentNullException(nameof(r2));
 			Contract.EndContractBlock();
 
@@ -385,9 +466,9 @@ namespace Open
 		#region IRange<TimeSpan> Arithmetic
 		public static IRange<TimeSpan> AddRange(this IRange<TimeSpan> r1, IRange<TimeSpan> r2)
 		{
-			if (r1 == null)
+			if (r1 is null)
 				throw new NullReferenceException();
-			if (r2 == null)
+			if (r2 is null)
 				throw new ArgumentNullException(nameof(r2));
 			Contract.EndContractBlock();
 
@@ -396,9 +477,9 @@ namespace Open
 
 		public static IRange<TimeSpan> SubtractRange(this IRange<TimeSpan> r1, IRange<TimeSpan> r2)
 		{
-			if (r1 == null)
+			if (r1 is null)
 				throw new NullReferenceException();
-			if (r2 == null)
+			if (r2 is null)
 				throw new ArgumentNullException(nameof(r2));
 			Contract.EndContractBlock();
 
@@ -410,9 +491,9 @@ namespace Open
 		public static IRange<T> AddRange<T>(this IRange<T> r1, IRange<T> r2)
 			where T : struct, IComparable
 		{
-			if (r1 == null)
+			if (r1 is null)
 				throw new NullReferenceException();
-			if (r2 == null)
+			if (r2 is null)
 				throw new ArgumentNullException(nameof(r2));
 			Contract.EndContractBlock();
 
@@ -422,9 +503,9 @@ namespace Open
 		public static IRange<T> SubtractRange<T>(this IRange<T> r1, IRange<T> r2)
 			where T : struct, IComparable
 		{
-			if (r1 == null)
+			if (r1 is null)
 				throw new NullReferenceException();
-			if (r2 == null)
+			if (r2 is null)
 				throw new ArgumentNullException(nameof(r2));
 			Contract.EndContractBlock();
 
@@ -434,9 +515,9 @@ namespace Open
 		public static IRange<T> MultiplyByRange<T>(this IRange<T> r1, IRange<T> r2)
 			where T : struct, IComparable
 		{
-			if (r1 == null)
+			if (r1 is null)
 				throw new NullReferenceException();
-			if (r2 == null)
+			if (r2 is null)
 				throw new ArgumentNullException(nameof(r2));
 			Contract.EndContractBlock();
 
@@ -446,9 +527,9 @@ namespace Open
 		public static IRange<T> DivideByRange<T>(this IRange<T> r1, IRange<T> r2)
 			where T : struct, IComparable
 		{
-			if (r1 == null)
+			if (r1 is null)
 				throw new NullReferenceException();
-			if (r2 == null)
+			if (r2 is null)
 				throw new ArgumentNullException(nameof(r2));
 			Contract.EndContractBlock();
 
@@ -460,7 +541,7 @@ namespace Open
 		public static T Delta<T>(this IRange<T> target)
 			where T : struct, IComparable
 		{
-			if (target == null)
+			if (target is null)
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
@@ -469,7 +550,7 @@ namespace Open
 
 		public static int Delta(this IRange<int> target)
 		{
-			if (target == null)
+			if (target is null)
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
@@ -478,7 +559,7 @@ namespace Open
 
 		public static long Delta(this IRange<long> target)
 		{
-			if (target == null)
+			if (target is null)
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
@@ -487,7 +568,7 @@ namespace Open
 
 		public static float Delta(this IRange<float> target)
 		{
-			if (target == null)
+			if (target is null)
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
@@ -496,7 +577,7 @@ namespace Open
 
 		public static double Delta(this IRange<double> target)
 		{
-			if (target == null)
+			if (target is null)
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
@@ -505,7 +586,7 @@ namespace Open
 
 		public static TimeSpan Delta(this IRange<TimeSpan> target)
 		{
-			if (target == null)
+			if (target is null)
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
@@ -514,7 +595,7 @@ namespace Open
 
 		public static TimeSpan Delta(this IRange<DateTime> target)
 		{
-			if (target == null)
+			if (target is null)
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
@@ -523,7 +604,7 @@ namespace Open
 
 		public static bool IsInRange(this IRange<TimeSpan> target, TimeSpan value, bool includeLimits = false)
 		{
-			if (target == null)
+			if (target is null)
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
@@ -534,7 +615,7 @@ namespace Open
 
 		public static bool IsInRange(this IRange<DateTime> target, DateTime value, bool includeLimits = false)
 		{
-			if (target == null)
+			if (target is null)
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
@@ -545,7 +626,7 @@ namespace Open
 
 		public static bool IsInRange(this IRange<int> target, int value, bool includeLimits = false)
 		{
-			if (target == null)
+			if (target is null)
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
@@ -556,7 +637,7 @@ namespace Open
 
 		public static bool IsInRange(this IRange<float> target, float value, bool includeLimits = false)
 		{
-			if (target == null)
+			if (target is null)
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
@@ -567,7 +648,7 @@ namespace Open
 
 		public static bool IsInRange(this IRange<double> target, double value, bool includeLimits = false)
 		{
-			if (target == null)
+			if (target is null)
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
@@ -579,7 +660,7 @@ namespace Open
 		public static bool IsInRange<T>(this IRange<T> target, T value, bool includeLimits = false)
 			where T : IComparable
 		{
-			if (target == null)
+			if (target is null)
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
@@ -592,7 +673,7 @@ namespace Open
 
 		public static IEnumerable<DateTime> Dates(this IRange<DateTime> target)
 		{
-			if (target == null)
+			if (target is null)
 				throw new NullReferenceException();
 			Contract.EndContractBlock();
 
