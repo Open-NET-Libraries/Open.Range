@@ -4,52 +4,157 @@ using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 using System.Linq;
 
-namespace Open.Range;
+namespace Open;
 
-public static partial class Extensions
+public static partial class RangeExtensions
 {
-	/// <summary>
-	/// Returns a range from this boundary (<paramref name="low"/>) to the provided (included) <paramref name="high"/> value.
-	/// </summary>
-	public static Range<Boundary<T>> To<T>(this Boundary<T> low, T high) => new(low, new Boundary<T>(high, true));
+	private const string UnableToMeasureRangeOfEmpty = "Unable to acquire a range from an empty set.";
 
-	/// <summary>
-	/// Returns a range from this boundary (<paramref name="low"/>) to the provided (excluded) <paramref name="high"/> value.
-	/// </summary>
-	public static Range<Boundary<T>> Below<T>(this Boundary<T> low, T high) => new(low, new Boundary<T>(high, false));
-
-	public static Range<DateTime> Range<T>(this IEnumerable<T> items, Func<T, DateTime> selector)
+	/// <param name="items">The items to select from.</param>
+	/// <param name="selector">A function for selecting values from each item.</param>
+	/// <exception cref="ArgumentNullException"><paramref name="items"/> or <paramref name="selector"/> is null.</exception>
+	/// <inheritdoc cref="Range{T}(IEnumerable{T}, T)"/>
+	public static Range<TSelect> Range<T, TSelect>(
+		this IEnumerable<T> items, TSelect defaultIfEmpty, Func<T, TSelect> selector)
+		where TSelect : IComparable<TSelect>
 	{
 		if (items is null)
-			throw new NullReferenceException();
+			throw new ArgumentNullException(nameof(selector));
 		if (selector is null)
 			throw new ArgumentNullException(nameof(selector));
 		Contract.EndContractBlock();
 
-		var max = DateTime.MinValue;
-		var min = DateTime.MaxValue;
+		using var e = items.GetEnumerator();
+		if (!e.MoveNext()) return new(defaultIfEmpty, defaultIfEmpty);
 
-		var hasItems = false;
+		var min = selector(e.Current);
+		var max = min;
 
-		foreach (var item in items)
+		while (e.MoveNext())
 		{
-			hasItems = true;
-			var value = selector(item);
+			var c = selector(e.Current);
+			if (c.CompareTo(min) < 0) min = c;
+			if (c.CompareTo(max) > 0) max = c;
+		}
+
+		return new Range<TSelect>(min, max);
+	}
+
+	/// <exception cref="InvalidOperationException">If the set of values is empty.</exception>
+	/// <inheritdoc cref="Range{T, TSelect}(IEnumerable{T}, TSelect, Func{T, TSelect})"/>
+	public static Range<TSelect> Range<T, TSelect>(
+		this IEnumerable<T> items, Func<T, TSelect> selector)
+		where TSelect : IComparable<TSelect>
+	{
+		if (items is null)
+			throw new ArgumentNullException(nameof(selector));
+		if (selector is null)
+			throw new ArgumentNullException(nameof(selector));
+		Contract.EndContractBlock();
+
+		using var e = items.GetEnumerator();
+		if (!e.MoveNext()) throw new InvalidOperationException(UnableToMeasureRangeOfEmpty);
+
+		var min = selector(e.Current);
+		var max = min;
+
+		while (e.MoveNext())
+		{
+			var c = selector(e.Current);
+			if (c.CompareTo(min) < 0) min = c;
+			if (c.CompareTo(max) > 0) max = c;
+		}
+
+		return new Range<TSelect>(min, max);
+	}
+
+	/// <summary>
+	/// Determines the minimum and maximum values of a set.
+	/// </summary>
+	/// <param name="values">The set of values to measure.</param>
+	/// <param name="defaultIfEmpty">A default value to use if the enumerable is empty.</param>
+	/// <returns>A range (.Low and .High) representing the minimum and maximum values.</returns>
+	/// <exception cref="ArgumentNullException"><paramref name="values"/> is null.</exception>
+	public static Range<T> Range<T>(
+		this IEnumerable<T> values,
+		T defaultIfEmpty)
+		where T : IComparable<T>
+	{
+		if (values is null)
+			throw new ArgumentNullException(nameof(values));
+		Contract.EndContractBlock();
+
+		using var e = values.GetEnumerator();
+		if (!e.MoveNext()) return new(defaultIfEmpty, defaultIfEmpty);
+
+		var min = e.Current;
+		var max = e.Current;
+
+		while (e.MoveNext())
+		{
+			var c = e.Current;
+			if (c.CompareTo(min) < 0) min = c;
+			if (c.CompareTo(max) > 0) max = c;
+		}
+
+		return new Range<T>(min, max);
+	}
+
+	/// <exception cref="InvalidOperationException">If the set of values is empty.</exception>
+	/// <inheritdoc cref="Range{T}(IEnumerable{T}, T)"/>
+	public static Range<T> Range<T>(this IEnumerable<T> values)
+		where T : IComparable<T>
+	{
+		if (values is null)
+			throw new ArgumentNullException(nameof(values));
+		Contract.EndContractBlock();
+
+		using var e = values.GetEnumerator();
+		if (!e.MoveNext()) throw new InvalidOperationException(UnableToMeasureRangeOfEmpty);
+
+		var min = e.Current;
+		var max = e.Current;
+
+		while (e.MoveNext())
+		{
+			var c = e.Current;
+			if (c.CompareTo(min) < 0) min = c;
+			if (c.CompareTo(max) > 0) max = c;
+		}
+
+		return new Range<T>(min, max);
+	}
+
+	/// <remarks>NaN values are ignored.</remarks>
+	/// <inheritdoc cref="Range{T}(IEnumerable{T}, T)"/>
+	public static Range<float> Range(this IEnumerable<float> values)
+	{
+		if (values is null)
+			throw new ArgumentNullException(nameof(values));
+		Contract.EndContractBlock();
+
+		var max = float.NegativeInfinity;
+		var min = float.PositiveInfinity;
+
+		foreach (var value in values)
+		{
+			if (float.IsNaN(value)) continue;
 			if (value < min)
 				min = value;
 			if (value > max)
 				max = value;
 		}
 
-		return hasItems
-			? new Range<DateTime>(min, max)
-			: throw new InvalidOperationException("You cannot acquire a date range from an empty set.");
+		return max < min ?
+			new Range<float>(float.NaN, float.NaN) :
+			new Range<float>(min, max);
 	}
 
+	/// <inheritdoc cref="Range(IEnumerable{float})"/>
 	public static Range<double> Range(this IEnumerable<double> values)
 	{
 		if (values is null)
-			throw new NullReferenceException();
+			throw new ArgumentNullException(nameof(values));
 		Contract.EndContractBlock();
 
 		var max = double.NegativeInfinity;
@@ -69,31 +174,8 @@ public static partial class Extensions
 			new Range<double>(min, max);
 	}
 
-	public static Range<double> Range<T>(this IEnumerable<T> items, Func<T, double> selector)
-	{
-		if (items is null)
-			throw new NullReferenceException();
-		if (selector is null)
-			throw new ArgumentNullException(nameof(selector));
-		Contract.EndContractBlock();
-
-		var max = double.NegativeInfinity;
-		var min = double.PositiveInfinity;
-
-		foreach (var item in items)
-		{
-			var value = selector(item);
-			if (value < min)
-				min = value;
-			if (value > max)
-				max = value;
-		}
-
-		return max < min ?
-			new Range<double>(double.NaN, double.NaN) :
-			new Range<double>(min, max);
-	}
-
+	/// <remarks>Use this method of the time to return from the selector could be lengthy.</remarks>
+	/// <inheritdoc cref="Range{T, TSelect}(IEnumerable{T}, Func{T, TSelect})"/>
 	public static Range<double> Range<T>(this ParallelQuery<T> items, Func<T, double> selector)
 	{
 		if (items is null)
@@ -336,8 +418,13 @@ public static partial class Extensions
 	#endregion
 
 
+	/// <summary>
+	/// Determines the difference in values (subtracting) from high to low.
+	/// </summary>
+	/// <param name="target"></param>
+	/// <exception cref="ArgumentNullException"></exception>
 	public static T Delta<T>(this IRange<T> target)
-		where T : struct, IComparable
+		where T : struct, IComparable<T>, IComparable
 	{
 		if (target is null)
 			throw new ArgumentNullException(nameof(target));
@@ -400,40 +487,7 @@ public static partial class Extensions
 		return TimeSpan.FromTicks(target.High.Ticks - target.Low.Ticks);
 	}
 
-	public static bool IsInRange(this IRange<TimeSpan> target, TimeSpan value, bool includeLimits = false)
-	{
-		if (target is null)
-			throw new ArgumentNullException(nameof(target));
-		Contract.EndContractBlock();
-
-		return includeLimits
-			? (value >= target.Low && value <= target.High)
-			: (value > target.Low && value < target.High);
-	}
-
-	public static bool IsInRange(this IRange<DateTime> target, DateTime value, bool includeLimits = false)
-	{
-		if (target is null)
-			throw new ArgumentNullException(nameof(target));
-		Contract.EndContractBlock();
-
-		return includeLimits
-			? (value >= target.Low && value <= target.High)
-			: (value > target.Low && value < target.High);
-	}
-
-	public static bool IsInRange(this IRange<int> target, int value, bool includeLimits = false)
-	{
-		if (target is null)
-			throw new ArgumentNullException(nameof(target));
-		Contract.EndContractBlock();
-
-		return includeLimits
-			? (value >= target.Low && value <= target.High)
-			: (value > target.Low && value < target.High);
-	}
-
-	public static IEnumerable<DateTime> Dates(this IRange<DateTime> target)
+	public static IEnumerable<DateTime> Dates(this IRange<DateTime> target, bool inclusive = false)
 	{
 		if (target is null)
 			throw new ArgumentNullException(nameof(target));
@@ -444,11 +498,28 @@ public static partial class Extensions
 
 		for (var d = startDate; d < endDate; d = d.AddDays(1).Date)
 			yield return d.Date;
+
+		if (inclusive && startDate != endDate)
+			yield return endDate;
+	}
+
+	public static void UpdateMinMax<T>(this T value, ref T min, ref T max)
+		where T : IComparable<T>
+	{
+		if (value.CompareTo(min) < 0) min = value;
+		if (value.CompareTo(max) > 0) max = value;
 	}
 
 	public static void UpdateMinMax(this double value, ref double min, ref double max)
 	{
 		if (double.IsNaN(value)) return;
+		if (value < min) min = value;
+		if (value > max) max = value;
+	}
+
+	public static void UpdateMinMax(this float value, ref float min, ref float max)
+	{
+		if (float.IsNaN(value)) return;
 		if (value < min) min = value;
 		if (value > max) max = value;
 	}

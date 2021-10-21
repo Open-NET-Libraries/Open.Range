@@ -1,9 +1,15 @@
 ﻿using System;
 
-namespace Open.Range;
+namespace Open;
 
-public static partial class Extensions
+public static partial class RangeExtensions
 {
+	/// <summary>
+	/// Returns true if the value exists within the defined range.
+	/// </summary>
+	/// <param name="value">The value to verify is in the range.</param>
+	/// <returns>
+	/// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
 	public static bool Contains<T>(
 		this IRange<Boundary<T>> range,
 		T value)
@@ -17,6 +23,7 @@ public static partial class Extensions
 		return high < 0 || high == 0 && range.High.Inclusive;
 	}
 
+	/// <inheritdoc cref="Contains{T}(IRange{Boundary{T}}, T)"/>
 	public static bool Contains(
 		this IRange<Boundary<float>> range,
 		float value)
@@ -29,6 +36,7 @@ public static partial class Extensions
 		return value < high || value == high && range.High.Inclusive;
 	}
 
+	/// <inheritdoc cref="Contains{T}(IRange{Boundary{T}}, T)"/>
 	public static bool Contains(
 		this IRange<Boundary<double>> range,
 		double value)
@@ -108,6 +116,4 @@ public static partial class Extensions
 		double minimum,
 		double maximum)
 		=> minimum < value && value < maximum;
-
-
 }

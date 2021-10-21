@@ -157,7 +157,6 @@ public readonly struct RangeTimeIndexed<T> : IRangeTimeIndexed<T>, IEquatable<Ra
 	public RangeTimeIndexed(DateTime datetime, T equal)
 		: this(datetime, equal, equal) { }
 
-
 	#region IRange<T> 
 	/// <inheritdoc />
 	public T Low { get; }

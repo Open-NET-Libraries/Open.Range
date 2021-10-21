@@ -23,6 +23,7 @@
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
 		<PackageIcon>logo.png</PackageIcon>
+		<RootNamespace>Open</RootNamespace>
 	</PropertyGroup>
 
 	<ItemGroup>

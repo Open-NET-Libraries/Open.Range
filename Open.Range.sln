@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.31808.319
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Open.Range", "Open.Range\Open.Range.csproj", "{108751E4-75F2-49B4-889C-BB078F5B9C32}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Open.Range.Tests", "Open.Range.Tests\Open.Range.Tests.csproj", "{CBDBAF03-112B-48E0-BB0A-58832ED02695}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Open.RangeTests", "Open.Range.Tests\Open.RangeTests.csproj", "{CBDBAF03-112B-48E0-BB0A-58832ED02695}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

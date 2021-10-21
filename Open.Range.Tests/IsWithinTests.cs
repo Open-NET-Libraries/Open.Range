@@ -1,6 +1,6 @@
 using Xunit;
 
-namespace Open.Range.Tests;
+namespace Open.RangeTests;
 public static class IsWithinTests
 {
 	[Theory]
