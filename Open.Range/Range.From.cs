@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Open;
+﻿namespace Open;
 
 public static class Range
 {
@@ -43,5 +39,22 @@ public static class Range
 	public static Range<Boundary<T>> Include<T>(T low, T high)
 		=> new(new(low, true), new(high, true));
 
+	/// <summary>
+	/// Defines a <typeparamref name="T"/> range with included <typeparamref name="TValue"/>.
+	/// </summary>
+	public static RangeWithValue<T, TValue> WithValue<T, TValue>(T low, T high, TValue value)
+		=> new(low, high, value);
+}
 
+public static partial class BoundaryExtensions
+{
+	/// <summary>
+	/// Returns a range from this boundary (<paramref name="low"/>) to the provided (included) <paramref name="high"/> value.
+	/// </summary>
+	public static Range<Boundary<T>> To<T>(this Boundary<T> low, T high) => new(low, new Boundary<T>(high, true));
+
+	/// <summary>
+	/// Returns a range from this boundary (<paramref name="low"/>) to the provided (excluded) <paramref name="high"/> value.
+	/// </summary>
+	public static Range<Boundary<T>> Below<T>(this Boundary<T> low, T high) => new(low, new Boundary<T>(high, false));
 }
