@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Open;
 
@@ -17,33 +15,29 @@ public static partial class RangeExtensions
 		this Range<T> range, T value)
 		where T : IComparable<T>
 	{
-		var low = value.CompareTo(range.Low);
-		if (low < 0) return new(value, range.High);
-		var high = value.CompareTo(range.High);
-		return high > 0 ? new(range.Low, value) : range;
-	}
+		if (IsNaN(value)) return range;
 
-	/// <inheritdoc cref="Expand{T}(Open.Range{T}, T)" />
-	public static Range<float> Expand(
-		this Range<float> range, float value)
-	{
-		var low = range.Low;
-		return value < low
-			? new(value, range.High)
-			: range.High < value
-			? new(low, value)
-			: range;
-	}
+		var rLow = range.Low;
+		var rHigh = range.High;
+		T low = rLow;
+		T high = rHigh;
+		var diff = low.CompareTo(high);
+		var cLow = value.CompareTo(low);
+		var cHigh = value.CompareTo(high);
+		var lowIsNaN = IsNaN(low);
+		if (diff == 0)
+		{
+			if (lowIsNaN)
+				return new Range<T>(value, value);
 
-	/// <inheritdoc cref="Expand{T}(Open.Range{T}, T)" />
-	public static Range<double> Expand(
-		this Range<double> range, double value)
-	{
-		var low = range.Low;
-		return value < low
-			? new(value, range.High)
-			: range.High < value
-			? new(low, value)
+			if (cLow == 0)
+				return range;
+		}
+
+		var lowChange = lowIsNaN || cLow < 0;
+		var highChange = cHigh > 0 || IsNaN(high);
+		return lowChange || highChange
+			? (new(lowChange ? value : rLow, highChange ? value : rHigh))
 			: range;
 	}
 
@@ -52,31 +46,29 @@ public static partial class RangeExtensions
 		this RangeWithValue<T, TValue> range, T value)
 		where T : IComparable<T>
 	{
-		var low = value.CompareTo(range.Low);
-		if (low < 0) return new(value, range.High, range.Value);
-		var high = value.CompareTo(range.High);
-		return high > 0 ? new(range.Low, value, range.Value) : range;
-	}
+		if (IsNaN(value)) return range;
 
-	/// <inheritdoc cref="Expand{T}(Open.Range{T}, T)" />
-	public static RangeWithValue<float, TValue> Expand<TValue>(this RangeWithValue<float, TValue> range, float value)
-	{
-		var low = range.Low;
-		return value < low
-			? new(value, range.High, range.Value)
-			: range.High < value
-			? new(low, value, range.Value)
-			: range;
-	}
+		var rLow = range.Low;
+		var rHigh = range.High;
+		T low = rLow;
+		T high = rHigh;
+		var diff = low.CompareTo(high);
+		var cLow = value.CompareTo(low);
+		var cHigh = value.CompareTo(high);
+		var lowIsNaN = IsNaN(low);
+		if (diff == 0)
+		{
+			if (lowIsNaN)
+				return new(value, value, range.Value);
 
-	/// <inheritdoc cref="Expand{T}(Open.Range{T}, T)" />
-	public static RangeWithValue<double, TValue> Expand<TValue>(this RangeWithValue<double, TValue> range, double value)
-	{
-		var low = range.Low;
-		return value < low
-			? new(value, range.High, range.Value)
-			: range.High < value
-			? new(low, value, range.Value)
+			if (cLow == 0)
+				return range;
+		}
+
+		var lowChange = lowIsNaN || cLow < 0;
+		var highChange = cHigh > 0 || IsNaN(high);
+		return lowChange || highChange
+			? new(lowChange ? value : rLow, highChange ? value : rHigh, range.Value)
 			: range;
 	}
 
@@ -86,6 +78,8 @@ public static partial class RangeExtensions
 		where T : IComparable<T>
 	{
 		var v = value.Value;
+		if (IsNaN(v)) return range;
+
 		var rLow = range.Low;
 		var rHigh = range.High;
 		T low = rLow;
@@ -93,8 +87,14 @@ public static partial class RangeExtensions
 		var diff = low.CompareTo(high);
 		var cLow = v.CompareTo(low);
 		var cHigh = v.CompareTo(high);
+		var lowIsNaN = IsNaN(low);
 		if (diff == 0)
 		{
+			if (lowIsNaN)
+			{
+				return new Range<Boundary<T>>(value, value);
+			}
+
 			if (cLow == 0)
 			{
 				return !value.Inclusive
@@ -103,12 +103,24 @@ public static partial class RangeExtensions
 						: new Range<Boundary<T>>(value, value);
 			}
 		}
-		else if (cLow > 0 && cHigh < 0) return range;
 
-		return cLow < 0	? new(value, rHigh)
-			: cLow == 0 ? rLow.Inclusive || !value.Inclusive ? range : new(value, rHigh)
-            : cHigh > 0 ? new(rLow, value) : rLow.Inclusive || !value.Inclusive ? range
-			: new(rLow, value);
+		var lowChange = lowIsNaN || cLow < 0 || cLow == 0 && !rLow.Inclusive;
+		var highChange = cHigh > 0 || cHigh == 0 && !rHigh.Inclusive || IsNaN(high);
+		return lowChange || highChange
+			? (new(lowChange ? value : rLow, highChange ? value : rHigh))
+			: range;
 	}
 
+	/// <param name="inclusive">Specifies if the value is inclusive.</param>
+	/// <inheritdoc cref="Expand{T}(Open.Range{T}, T)" />
+	public static Range<Boundary<T>> Expand<T>(
+		this Range<Boundary<T>> range, T value, bool inclusive)
+		where T : IComparable<T>
+		=> range.Expand(new Boundary<T>(value, inclusive));
+
+	static bool IsNaN<T>(T value)
+		=> value is double d && double.IsNaN(d)
+		|| value is float f && float.IsNaN(f);
+
 }
+
