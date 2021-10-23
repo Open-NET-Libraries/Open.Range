@@ -1,40 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
+using static Open.Utility;
 
 namespace Open;
 
-public interface IDateTimeIndexed
-{
-	DateTime DateTime { get; }
-}
-
-public interface IRange<out T>
-{
-	/// <summary>
-	/// The low (minimum) value.
-	/// </summary>
-	T Low { get; }
-
-	/// <summary>
-	/// The high (maximum) value.
-	/// </summary>
-	T High { get; }
-}
-
-public interface IRangeWithValue<out T, out TValue> : IRange<T>
-{
-	TValue Value { get; }
-}
-
-public interface IRangeTimeIndexed<out T> : IDateTimeIndexed, IRange<T> { }
-
 public readonly struct Range<T> : IRange<T>, IEquatable<Range<T>>
+	where T : IComparable<T>
 {
 	public Range(
 		T low,
 		T high)
 	{
+		Range.AssertIsValid(low, high);
 		Low = low;
 		High = high;
 	}
@@ -81,201 +58,77 @@ public readonly struct Range<T> : IRange<T>, IEquatable<Range<T>>
 	public static bool operator !=(Range<T> left, Range<T> right) => !left.Equals(right);
 }
 
-public readonly struct RangeWithValue<T, TValue> : IRange<T>, IEquatable<RangeWithValue<T, TValue>>
+
+public static class Range
 {
-	public RangeWithValue(
-		T low,
-		T high,
-		TValue value)
+	/// <summary>
+	/// Defines a range of values <typeparamref name="T"/>.
+	/// </summary>
+	public static Range<T> Create<T>(T low, T high)
+		where T : IComparable<T>
+		=> new(low, high);
+
+	/// <summary>
+	/// Defines the lowest inclusive value of a range.
+	/// </summary>
+	/// <param name="low"></param>
+	/// <param name="inclusive"></param>
+	public static Boundary<T> From<T>(T low)
+		where T : IComparable<T>
+		=> new(low, true);
+
+	/// <summary>
+	/// Defines the lower (non-inclusive) boundary of a range.
+	/// </summary>
+	/// <param name="low">The excluded value to start from.</param>
+	public static Boundary<T> Above<T>(T low)
+		where T : IComparable<T>
+		=> new(low, false);
+
+	/// <summary>
+	/// Defines a non-inclusive range.
+	/// </summary>
+	/// <param name="low">The excluded minimum.</param>
+	/// <param name="high">The excluded maximum</param>
+	public static Range<Boundary<T>> Between<T>(T low, T high)
+		where T : IComparable<T>
+		=> new(new(low, false), new(high, false));
+
+	/// <summary>
+	/// Defines an inclusive range.
+	/// </summary>
+	/// <param name="low">The inclusive minimum.</param>
+	/// <param name="high">The inclusive maximum</param>
+	public static Range<Boundary<T>> Include<T>(T low, T high)
+		where T : IComparable<T>
+		=> new(new(low, true), new(high, true));
+
+	/// <summary>
+	/// Defines a <typeparamref name="T"/> range with included <typeparamref name="TValue"/>.
+	/// </summary>
+	public static RangeWithValue<T, TValue> WithValue<T, TValue>(T low, T high, TValue value)
+		where T : IComparable<T>
+		=> new(low, high, value);
+
+	/// <summary>
+	/// Returns true if the low is less than or equal to the high.
+	/// </summary>
+	public static bool IsValid<T>(T low, T high)
+		where T : IComparable<T>
 	{
-		Low = low;
-		High = high;
-		Value = value;
+		if (CanBeNaN<T>() && (IsNaN(low) || IsNaN(high)))
+			return false;
+
+		return low.CompareTo(high) <= 0;
 	}
 
-
-	#region IRangeWithValue<T, TValue> 
-	/// <inheritdoc />
-	public T Low { get; }
-
-	/// <inheritdoc />
-	public T High { get; }
-
-	/// <inheritdoc />
-	public TValue Value { get; }
-	#endregion
-
-	/// <inheritdoc />
-	public override string ToString()
-		=> $"[{Low} - {High}]({Value})";
-
-	/// <inheritdoc />
-	public bool Equals(RangeWithValue<T, TValue> other)
-		=> EqualityComparer<T>.Default.Equals(Low, other.Low)
-		&& EqualityComparer<T>.Default.Equals(High, other.High)
-		&& EqualityComparer<TValue>.Default.Equals(Value, other.Value);
-
-	/// <inheritdoc />
-	public override bool Equals(object range)
-		=> range is RangeWithValue<T, TValue> r && Equals(r);
-
-	/// <inheritdoc />
-#if NETSTANDARD2_1_OR_GREATER
-	public override int GetHashCode()
-		=> HashCode.Combine(Low, High, Value);
-#else
-	public override int GetHashCode()
-	{
-		int hashCode = 593764356;
-		hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(Low);
-		hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(High);
-		hashCode = hashCode * -1521134295 + EqualityComparer<TValue>.Default.GetHashCode(Value);
-		return hashCode;
-	}
-#endif
-
-	/// <inheritdoc />
-	public static bool operator ==(RangeWithValue<T, TValue> left, RangeWithValue<T, TValue> right) => left.Equals(right);
-
-	/// <inheritdoc />
-	public static bool operator !=(RangeWithValue<T, TValue> left, RangeWithValue<T, TValue> right) => !left.Equals(right);
-
-}
-
-public readonly struct RangeTimeIndexed<T> : IRangeTimeIndexed<T>, IEquatable<RangeTimeIndexed<T>>
-{
-	public RangeTimeIndexed(
-		DateTime datetime,
-		T low,
-		T high)
-	{
-		DateTime = datetime;
-		Low = low;
-		High = high;
-	}
-
-	public RangeTimeIndexed(DateTime datetime, T equal)
-		: this(datetime, equal, equal) { }
-
-	#region IRange<T> 
-	/// <inheritdoc />
-	public T Low { get; }
-
-	/// <inheritdoc />
-	public T High { get; }
-	#endregion
-
-	#region IDateTimeIndexed Members
-	/// <inheritdoc />
-	public DateTime DateTime { get; }
-	#endregion
-
-	/// <inheritdoc />
-	public override string ToString()
-		=> DateTime.ToString(CultureInfo.InvariantCulture) + ':' + Low + '-' + High;
-
-	/// <inheritdoc />
-	public bool Equals(RangeTimeIndexed<T> other)
-		=> DateTime.Equals(other.DateTime)
-		&& EqualityComparer<T>.Default.Equals(Low, other.Low)
-		&& EqualityComparer<T>.Default.Equals(High, other.High);
-
-	/// <inheritdoc />
-	public override bool Equals(object range)
-		=> range is RangeTimeIndexed<T> r && Equals(r);
-
-	/// <inheritdoc />
-#if NETSTANDARD2_1_OR_GREATER
-	public override int GetHashCode()
-		=> HashCode.Combine(DateTime, Low, High);
-#else
-	public override int GetHashCode()
-	{
-		int hashCode = 593764356;
-		hashCode = hashCode * -1521134295 + DateTime.GetHashCode();
-		hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(Low);
-		hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(High);
-		return hashCode;
-	}
-#endif
-
-	/// <inheritdoc />
-	public static bool operator ==(RangeTimeIndexed<T> left, RangeTimeIndexed<T> right) => left.Equals(right);
-	/// <inheritdoc />
-	public static bool operator !=(RangeTimeIndexed<T> left, RangeTimeIndexed<T> right) => !left.Equals(right);
-}
-
-public class RangeTimeIndexedWithValue<T, TValue> : IRangeWithValue<T, TValue>, IRangeTimeIndexed<T>, IEquatable<RangeTimeIndexedWithValue<T, TValue>>
-{
-	public RangeTimeIndexedWithValue(
-		DateTime datetime,
-		T low,
-		T high,
-		TValue value)
-	{
-		DateTime = datetime;
-		Low = low;
-		High = high;
-		Value = value;
-	}
-
-	#region IRangeWithValue<T, TValue> 
-	/// <inheritdoc />
-	public T Low { get; }
-
-	/// <inheritdoc />
-	public T High { get; }
-
-	/// <inheritdoc />
-	public TValue Value { get; }
-	#endregion
-
-	/// <inheritdoc />
-	public override string ToString()
-		=> $"{DateTime.ToString(CultureInfo.InvariantCulture)}:[{Low} - {High}]({Value})";
-
-	#region IDateTimeIndexed Members
-	public DateTime DateTime { get; }
-	#endregion
-
-	/// <inheritdoc />
-	public bool Equals(RangeTimeIndexedWithValue<T, TValue> other)
-		=> other != null
-		&& DateTime.Equals(other.DateTime)
-		&& EqualityComparer<T>.Default.Equals(Low, other.Low)
-		&& EqualityComparer<T>.Default.Equals(High, other.High)
-		&& EqualityComparer<TValue>.Default.Equals(Value, other.Value);
-
-	/// <inheritdoc />
-	public override bool Equals(object range)
-		=> range is RangeTimeIndexedWithValue<T, TValue> r && Equals(r);
-
-	/// <inheritdoc />
-#if NETSTANDARD2_1_OR_GREATER
-	public override int GetHashCode()
-		=> HashCode.Combine(DateTime, Low, High, Value);
-#else
-	public override int GetHashCode()
-	{
-		int hashCode = 593764356;
-		hashCode = hashCode * -1521134295 + DateTime.GetHashCode();
-		hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(Low);
-		hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(High);
-		hashCode = hashCode * -1521134295 + EqualityComparer<TValue>.Default.GetHashCode(Value);
-		return hashCode;
-	}
-#endif
-
-}
-
-public class RangeTimeIndexedWithValue<T> : RangeTimeIndexedWithValue<T, T>
-{
-	public RangeTimeIndexedWithValue(
-		DateTime datetime,
-		T low,
-		T high,
-		T value)
-		: base(datetime, low, high, value)
-	{
-	}
+	/// <summary>
+	/// Throws an ArgumentException if the low is not less than nor equal to the high.
+	/// </summary>
+	/// <returns>True. (Allowing for boolean chains.)</returns>
+	/// <exception cref="ArgumentException">The low is not less than nor equal to the high.</exception>
+	public static bool AssertIsValid<T>(T low, T high)
+		where T : IComparable<T>
+		=> IsValid(low, high) ? true
+		: throw new ArgumentException($"Range is not valid. Low: {low}, High: {high}");
 }

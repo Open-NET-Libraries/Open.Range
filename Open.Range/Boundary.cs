@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using static Open.Utility;
 
 namespace Open;
 
@@ -8,7 +9,8 @@ namespace Open;
 /// By specifying as inclusive, the value can be included or excluded from a set or range.
 /// </summary>
 /// <remarks>Implicity converts to <typeparamref name="T"/>.</remarks>
-public readonly struct Boundary<T> : IEquatable<Boundary<T>>
+public readonly struct Boundary<T> : IEquatable<Boundary<T>>, IComparable<Boundary<T>>
+	where T : IComparable<T>
 {
 	/// <summary>
 	/// Constructs a boundary value.
@@ -17,6 +19,8 @@ public readonly struct Boundary<T> : IEquatable<Boundary<T>>
 	/// <param name="inclusive"></param>
 	public Boundary(T value, bool inclusive)
 	{
+		if(value is null) throw new ArgumentNullException(nameof(value));
+		if (IsNaN(value)) throw new ArgumentException("Boundaries cannot be NaN.");
 		Value = value;
 		Inclusive = inclusive;
 	}
@@ -53,6 +57,20 @@ public readonly struct Boundary<T> : IEquatable<Boundary<T>>
 		return hashCode;
 	}
 #endif
+
+	/// <inheritdoc />
+	public int CompareTo(Boundary<T> other)
+	{
+		var c = Value.CompareTo(other.Value);
+		if (c == 0)
+		{
+			if (Inclusive != other.Inclusive)
+				throw new ArgumentException("Cannot compare an inclusive against a non-inclusive of equal value.");
+		}
+
+		return c;
+	}
+
 	[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2225:Operator overloads have named alternates", Justification = "Provided by 'Value' property.")]
 	public static implicit operator T(Boundary<T> boundary) => boundary.Value;
 
@@ -61,4 +79,16 @@ public readonly struct Boundary<T> : IEquatable<Boundary<T>>
 
 	/// <inheritdoc />
 	public static bool operator !=(Boundary<T> left, Boundary<T> right) => !left.Equals(right);
+
+	/// <inheritdoc />
+	public static bool operator <(Boundary<T> left, Boundary<T> right) => left.CompareTo(right) < 0;
+
+	/// <inheritdoc />
+	public static bool operator <=(Boundary<T> left, Boundary<T> right) => left.CompareTo(right) <= 0;
+
+	/// <inheritdoc />
+	public static bool operator >(Boundary<T> left, Boundary<T> right) => left.CompareTo(right) > 0;
+
+	/// <inheritdoc />
+	public static bool operator >=(Boundary<T> left, Boundary<T> right) => left.CompareTo(right) >= 0;
 }

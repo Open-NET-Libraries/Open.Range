@@ -1,4 +1,5 @@
 ﻿using System;
+using static Open.Utility;
 
 namespace Open;
 
@@ -16,37 +17,14 @@ public static partial class RangeExtensions
 		where T : IComparable<T>
 	{
 		if (range is null) throw new ArgumentNullException(nameof(range));
+		range.AssertIsValidRange();  
+		if (IsNaN(value))
+			return false;
 		var low = value.CompareTo(range.Low);
 		if (low < 0) return false;
 		if (low == 0) return range.Low.Inclusive;
 		var high = value.CompareTo(range.High);
 		return high < 0 || high == 0 && range.High.Inclusive;
-	}
-
-	/// <inheritdoc cref="Contains{T}(IRange{Boundary{T}}, T)"/>
-	public static bool Contains(
-		this IRange<Boundary<float>> range,
-		float value)
-	{
-		if (range is null) throw new ArgumentNullException(nameof(range));
-		float low = range.Low;
-		if(value < low) return false;
-		if(value == low) return range.Low.Inclusive;
-		float high = range.High;
-		return value < high || value == high && range.High.Inclusive;
-	}
-
-	/// <inheritdoc cref="Contains{T}(IRange{Boundary{T}}, T)"/>
-	public static bool Contains(
-		this IRange<Boundary<double>> range,
-		double value)
-	{
-		if (range is null) throw new ArgumentNullException(nameof(range));
-		double low = range.Low;
-		if (value < low) return false;
-		if (value == low) return range.Low.Inclusive;
-		double high = range.High;
-		return value < high || value == high && range.High.Inclusive;
 	}
 
 	/// <summary>
@@ -66,8 +44,12 @@ public static partial class RangeExtensions
 		T minimum,
 		T maximum)
 		where T : IComparable<T>
-		=> value.CompareTo(minimum) >= 0
-		&& value.CompareTo(maximum) <= 0;
+	{
+		if (CanBeNaN<T>() && (IsNaN(value) || IsNaN(minimum) || IsNaN(maximum)))
+			return false;
+		return value.CompareTo(minimum) >= 0
+			&& value.CompareTo(maximum) <= 0;
+	}
 
 	/// <inheritdoc cref="IsInRange{T}(T, T, T)" />
 	public static bool IsInRange(
@@ -116,4 +98,6 @@ public static partial class RangeExtensions
 		double minimum,
 		double maximum)
 		=> minimum < value && value < maximum;
+
+	//public static bool IsWithin()
 }

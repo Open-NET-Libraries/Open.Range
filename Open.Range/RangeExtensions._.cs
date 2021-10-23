@@ -369,7 +369,7 @@ public static partial class RangeExtensions
 
 	#region IRange<IComparable> Arithmetic
 	public static IRange<T> SumWith<T>(this IRange<T> r1, IRange<T> r2)
-		where T : struct, IComparable
+		where T : struct, IComparable, IComparable<T>
 	{
 		if (r1 is null)
 			throw new ArgumentNullException(nameof(r1));
@@ -381,7 +381,7 @@ public static partial class RangeExtensions
 	}
 
 	public static IRange<T> Subtract<T>(this IRange<T> r1, IRange<T> r2)
-		where T : struct, IComparable
+		where T : struct, IComparable, IComparable<T>
 	{
 		if (r1 is null)
 			throw new ArgumentNullException(nameof(r1));
@@ -393,7 +393,7 @@ public static partial class RangeExtensions
 	}
 
 	public static IRange<T> MultiplyBy<T>(this IRange<T> r1, IRange<T> r2)
-		where T : struct, IComparable
+		where T : struct, IComparable, IComparable<T>
 	{
 		if (r1 is null)
 			throw new ArgumentNullException(nameof(r1));
@@ -405,7 +405,7 @@ public static partial class RangeExtensions
 	}
 
 	public static IRange<T> DivideBy<T>(this IRange<T> r1, IRange<T> r2)
-		where T : struct, IComparable
+		where T : struct, IComparable, IComparable<T>
 	{
 		if (r1 is null)
 			throw new ArgumentNullException(nameof(r1));
