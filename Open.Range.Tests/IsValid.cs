@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using FluentAssertions;
+using Xunit;
 
 namespace Open.RangeTests;
 
@@ -9,7 +10,7 @@ public static class IsValid
 	[InlineData(-100d, -6d)]
 	[InlineData(-50d, 40d)]
 	public static void CheckValidity(double low, double high)
-		=> Assert.True(Range.Create(low, high).IsValidRange());
+		=> Range.IsValid(low, high).Should().BeTrue();
 
 	[Theory]
 	[InlineData(5d, 2d)]
@@ -18,5 +19,5 @@ public static class IsValid
 	[InlineData(double.NaN, 40d)]
 	[InlineData(50d, double.NaN)]
 	public static void CheckInvalid(double low, double high)
-		=> Assert.False(Range.Create(low, high).IsValidRange());
+		=> Range.IsValid(low, high).Should().BeFalse();
 }

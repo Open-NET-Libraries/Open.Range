@@ -12,15 +12,6 @@ public static partial class RangeExtensions
 		? throw new ArgumentNullException(nameof(range))
 		: Open.Range.IsValid(range.Low, range.High);
 
-
-	/// <inheritdoc cref="IsValidRange{T}(IRange{T})"/>
-	public static bool IsValidRange<T>(this IRange<Boundary<T>> range)
-	where T : IComparable<T>
-		=> range is null
-		? throw new ArgumentNullException(nameof(range))
-		: Open.Range.IsValid(range.Low.Value, range.High.Value);
-
-
 	/// <exception cref="ArgumentNullException">If <paramref name="range"/> is null.</exception>
 	/// <inheritdoc cref="Open.Range.AssertIsValid{T}(T, T)"/>
 	public static bool AssertIsValidRange<T>(this IRange<T> range)
@@ -28,12 +19,4 @@ public static partial class RangeExtensions
 		=> range is null
 		? throw new ArgumentNullException(nameof(range))
 		: Open.Range.AssertIsValid(range.Low, range.High);
-
-	/// <inheritdoc cref="AssertIsValidRange{T}(IRange{T})"/>
-	public static bool AssertIsValidRange<T>(this IRange<Boundary<T>> range)
-		where T : IComparable<T>
-		=> range is null
-		? throw new ArgumentNullException(nameof(range))
-		: Open.Range.AssertIsValid(range.Low.Value, range.High.Value);
-
 }

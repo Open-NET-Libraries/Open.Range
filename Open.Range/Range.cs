@@ -4,6 +4,9 @@ using static Open.Utility;
 
 namespace Open;
 
+/// <summary>
+/// Represents a low and a high value where the low must be less than or equal to the high.
+/// </summary>
 public readonly struct Range<T> : IRange<T>, IEquatable<Range<T>>
 	where T : IComparable<T>
 {
@@ -16,9 +19,6 @@ public readonly struct Range<T> : IRange<T>, IEquatable<Range<T>>
 		High = high;
 	}
 
-	public Range(T equal)
-		: this(equal, equal) { }
-
 	#region IRange<T> 
 	/// <inheritdoc />
 	public T Low { get; }
@@ -28,8 +28,15 @@ public readonly struct Range<T> : IRange<T>, IEquatable<Range<T>>
 	#endregion
 
 	/// <inheritdoc />
+	public void Deconstruct(out T low, out T high)
+	{
+		low = Low;
+		high = High;
+	}
+
+	/// <inheritdoc />
 	public override string ToString()
-		=> $"[{Low} - {High}]";
+		=> $"Range<{typeof(T)}>[{Low} - {High}]";
 
 	/// <inheritdoc />
 	public bool Equals(Range<T> other)
@@ -52,7 +59,6 @@ public readonly struct Range<T> : IRange<T>, IEquatable<Range<T>>
 		return hashCode;
 	}
 #endif
-
 
 	public static bool operator ==(Range<T> left, Range<T> right) => left.Equals(right);
 	public static bool operator !=(Range<T> left, Range<T> right) => !left.Equals(right);
@@ -117,6 +123,9 @@ public static class Range
 		where T : IComparable<T>
 	{
 		if (CanBeNaN<T>() && (IsNaN(low) || IsNaN(high)))
+			return false;
+
+		if (low is ICanRange l && !l.CanRangeWith(high))
 			return false;
 
 		return low.CompareTo(high) <= 0;

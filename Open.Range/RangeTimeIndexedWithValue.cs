@@ -32,6 +32,15 @@ public class RangeTimeIndexedWithValue<T, TValue>
 	#endregion
 
 	/// <inheritdoc />
+	public void Deconstruct(out DateTime datetime, out T low, out T high, out TValue value)
+	{
+		datetime = DateTime;
+		low = Low;
+		high = High;
+		value = Value;
+	}
+
+	/// <inheritdoc />
 	public override string ToString()
 		=> $"{DateTime.ToString(CultureInfo.InvariantCulture)}:[{Low} - {High}]({Value})";
 

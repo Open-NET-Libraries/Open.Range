@@ -85,19 +85,7 @@ public static partial class RangeExtensions
 		=> value.CompareTo(minimum) > 0
 		&& value.CompareTo(maximum) < 0;
 
-	/// <inheritdoc cref="IsInBounds{T}(T, T, T)" />
-	public static bool IsInBounds(
-		this float value,
-		float minimum,
-		float maximum)
-		=> minimum < value && value < maximum;
 
-	/// <inheritdoc cref="IsInBounds{T}(T, T, T)" />
-	public static bool IsInBounds(
-		this double value,
-		double minimum,
-		double maximum)
-		=> minimum < value && value < maximum;
 
 	//public static bool IsWithin()
 }

@@ -30,6 +30,14 @@ public readonly struct RangeWithValue<T, TValue>
 	#endregion
 
 	/// <inheritdoc />
+	public void Deconstruct(out T low, out T high, TValue value)
+	{
+		low = Low;
+		high = High;
+		value = Value;
+	}
+
+	/// <inheritdoc />
 	public override string ToString()
 		=> $"[{Low} - {High}]({Value})";
 
