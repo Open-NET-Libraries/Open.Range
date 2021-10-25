@@ -17,15 +17,20 @@ public static partial class RangeExtensions
 	{
 		var (rLow, rHigh) = range;
 		T low = rLow, high = rHigh;
-		if (value is ICanRange c && (!c.CanRangeWith(low) || !c.CanRangeWith(high)))
-			return range;
 
 		var diff = low.CompareTo(high);
-		var cLow = value.CompareTo(low);
+		var bV = value as IBoundary;
+		var cLow = bV is null
+			? value.CompareTo(low)
+			: bV.CompareLowTo(low);
+
 		if (diff == 0 && cLow == 0)
 			return range;
 
-		var cHigh = value.CompareTo(high);
+		var cHigh = bV is null
+			? value.CompareTo(high)
+			: bV.CompareHighTo(high);
+
 		var lowChange = cLow < 0;
 		var highChange = cHigh > 0;
 		return lowChange || highChange
@@ -38,62 +43,10 @@ public static partial class RangeExtensions
 		this RangeWithValue<T, TValue> range, T value)
 		where T : IComparable<T>
 	{
-		var (rLow, rHigh, rValue) = range;
-		T low = rLow, high = rHigh;
-		if (value is ICanRange c && (!c.CanRangeWith(low) || !c.CanRangeWith(high)))
-			return range;
-
-		var diff = low.CompareTo(high);
-		var cLow = value.CompareTo(low);
-		if (diff == 0 && cLow == 0)
-			return range;
-
-		var cHigh = value.CompareTo(high);
-		var lowChange = cLow < 0;
-		var highChange = cHigh > 0;
-		return lowChange || highChange
-			? (new(lowChange ? value : rLow, highChange ? value : rHigh, rValue))
-			: range;
-	}
-
-	/// <inheritdoc cref="Expand{T}(Open.Range{T}, T)" />
-	public static Range<Boundary<T>> Expand<T>(
-		this Range<Boundary<T>> range, Boundary<T> value)
-		where T : IComparable<T>
-	{
-		var v = value.Value;
-		var canBeNaN = CanBeNaN<T>();
-		if (canBeNaN && IsNaN(v)) return range;
-
-		var rLow = range.Low;
-		var rHigh = range.High;
-		T low = rLow;
-		T high = rHigh;
-		var diff = low.CompareTo(high);
-		var cLow = v.CompareTo(low);
-		var cHigh = v.CompareTo(high);
-		var lowIsNaN = canBeNaN && IsNaN(low);
-		if (diff == 0)
-		{
-			if (lowIsNaN)
-			{
-				return new Range<Boundary<T>>(value, value);
-			}
-
-			if (cLow == 0)
-			{
-				return !value.Inclusive
-					|| range.Low.Inclusive && range.High.Inclusive
-						? range
-						: new Range<Boundary<T>>(value, value);
-			}
-		}
-
-		var lowChange = lowIsNaN || cLow < 0 || cLow == 0 && !rLow.Inclusive;
-		var highChange = cHigh > 0 || cHigh == 0 && !rHigh.Inclusive || canBeNaN && IsNaN(high);
-		return lowChange || highChange
-			? (new(lowChange ? value : rLow, highChange ? value : rHigh))
-			: range;
+		var r = new Range<T>(range);
+		var e = Expand(r, value);
+		if (e == r) return range;
+		return new RangeWithValue<T, TValue>(e, range.Value);
 	}
 
 	/// <param name="inclusive">Specifies if the value is inclusive.</param>

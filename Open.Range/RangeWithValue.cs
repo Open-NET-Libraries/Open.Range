@@ -25,6 +25,14 @@ public readonly struct RangeWithValue<T, TValue>
 		Value = source.Value;
 	}
 
+	public RangeWithValue(IRange<T> range, TValue value)
+	{
+		if (range is null) throw new ArgumentNullException(nameof(range));
+		Low = range.Low;
+		High = range.High;
+		Value = value;
+	}
+
 
 	#region IRangeWithValue<T, TValue> 
 	/// <inheritdoc />
