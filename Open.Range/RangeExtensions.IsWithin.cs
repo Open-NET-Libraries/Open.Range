@@ -45,25 +45,10 @@ public static partial class RangeExtensions
 		T maximum)
 		where T : IComparable<T>
 	{
-		if (CanBeNaN<T>() && (IsNaN(value) || IsNaN(minimum) || IsNaN(maximum)))
-			return false;
-		return value.CompareTo(minimum) >= 0
-			&& value.CompareTo(maximum) <= 0;
+		var range = Open.Range.Include(minimum, maximum);
+		if (IsNaN(value)) return false;
+		return range.Contains(value);
 	}
-
-	/// <inheritdoc cref="IsInRange{T}(T, T, T)" />
-	public static bool IsInRange(
-		this float value,
-		float minimum,
-		float maximum)
-		=> minimum <= value && value <= maximum;
-
-	/// <inheritdoc cref="IsInRange{T}(T, T, T)" />
-	public static bool IsInRange(
-		this double value,
-		double minimum,
-		double maximum)
-		=> minimum <= value && value <= maximum;
 
 	/// <summary>
 	/// <paramref name="minimum"/> &gt; <paramref name="value"/> and <paramref name="value"/> &lt; <paramref name="maximum"/>
@@ -82,10 +67,9 @@ public static partial class RangeExtensions
 		T minimum,
 		T maximum)
 		where T : IComparable<T>
-		=> value.CompareTo(minimum) > 0
-		&& value.CompareTo(maximum) < 0;
-
-
-
-	//public static bool IsWithin()
+	{
+		var range = Open.Range.Between(minimum, maximum);
+		if (IsNaN(value)) return false;
+		return range.Contains(value);
+	}
 }

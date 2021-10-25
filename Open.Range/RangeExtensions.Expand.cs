@@ -38,30 +38,21 @@ public static partial class RangeExtensions
 		this RangeWithValue<T, TValue> range, T value)
 		where T : IComparable<T>
 	{
-		var canBeNaN = CanBeNaN<T>();
-		if (canBeNaN && IsNaN(value)) return range;
+		var (rLow, rHigh, rValue) = range;
+		T low = rLow, high = rHigh;
+		if (value is ICanRange c && (!c.CanRangeWith(low) || !c.CanRangeWith(high)))
+			return range;
 
-		var rLow = range.Low;
-		var rHigh = range.High;
-		T low = rLow;
-		T high = rHigh;
 		var diff = low.CompareTo(high);
 		var cLow = value.CompareTo(low);
+		if (diff == 0 && cLow == 0)
+			return range;
+
 		var cHigh = value.CompareTo(high);
-		var lowIsNaN = canBeNaN && IsNaN(low);
-		if (diff == 0)
-		{
-			if (lowIsNaN)
-				return new(value, value, range.Value);
-
-			if (cLow == 0)
-				return range;
-		}
-
-		var lowChange = lowIsNaN || cLow < 0;
-		var highChange = cHigh > 0 || canBeNaN && IsNaN(high);
+		var lowChange = cLow < 0;
+		var highChange = cHigh > 0;
 		return lowChange || highChange
-			? new(lowChange ? value : rLow, highChange ? value : rHigh, range.Value)
+			? (new(lowChange ? value : rLow, highChange ? value : rHigh, rValue))
 			: range;
 	}
 
@@ -110,7 +101,7 @@ public static partial class RangeExtensions
 	public static Range<Boundary<T>> Expand<T>(
 		this Range<Boundary<T>> range, T value, bool inclusive)
 		where T : IComparable<T>
-		=> range.Expand(new Boundary<T>(value, inclusive));
+		=> IsNaN(value) ? range : range.Expand(new Boundary<T>(value, inclusive));
 
 	/// <summary>
 	/// Creates a range that encompasses both ranges.

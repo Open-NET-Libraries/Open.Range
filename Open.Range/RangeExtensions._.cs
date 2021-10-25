@@ -1,8 +1,10 @@
 ﻿using Open.Arithmetic.Dynamic;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Linq;
+using static Open.Utility;
 
 namespace Open;
 
@@ -24,20 +26,7 @@ public static partial class RangeExtensions
 			throw new ArgumentNullException(nameof(selector));
 		Contract.EndContractBlock();
 
-		using var e = items.GetEnumerator();
-		if (!e.MoveNext()) return new(defaultIfEmpty, defaultIfEmpty);
-
-		var min = selector(e.Current);
-		var max = min;
-
-		while (e.MoveNext())
-		{
-			var c = selector(e.Current);
-			if (c.CompareTo(min) < 0) min = c;
-			if (c.CompareTo(max) > 0) max = c;
-		}
-
-		return new Range<TSelect>(min, max);
+		return items.Select(selector).Range(defaultIfEmpty);
 	}
 
 	/// <exception cref="InvalidOperationException">If the set of values is empty.</exception>
@@ -52,20 +41,7 @@ public static partial class RangeExtensions
 			throw new ArgumentNullException(nameof(selector));
 		Contract.EndContractBlock();
 
-		using var e = items.GetEnumerator();
-		if (!e.MoveNext()) throw new InvalidOperationException(UnableToMeasureRangeOfEmpty);
-
-		var min = selector(e.Current);
-		var max = min;
-
-		while (e.MoveNext())
-		{
-			var c = selector(e.Current);
-			if (c.CompareTo(min) < 0) min = c;
-			if (c.CompareTo(max) > 0) max = c;
-		}
-
-		return new Range<TSelect>(min, max);
+		return items.Select(selector).Range();
 	}
 
 	/// <summary>
@@ -87,17 +63,9 @@ public static partial class RangeExtensions
 		using var e = values.GetEnumerator();
 		if (!e.MoveNext()) return new(defaultIfEmpty, defaultIfEmpty);
 
-		var min = e.Current;
-		var max = e.Current;
-
-		while (e.MoveNext())
-		{
-			var c = e.Current;
-			if (c.CompareTo(min) < 0) min = c;
-			if (c.CompareTo(max) > 0) max = c;
-		}
-
-		return new Range<T>(min, max);
+		return CanBeNaN<T>()
+			? FromEnumeratorCanBeNaN(e, defaultIfEmpty)
+			: FromEnumerator(e);
 	}
 
 	/// <exception cref="InvalidOperationException">If the set of values is empty.</exception>
@@ -112,12 +80,21 @@ public static partial class RangeExtensions
 		using var e = values.GetEnumerator();
 		if (!e.MoveNext()) throw new InvalidOperationException(UnableToMeasureRangeOfEmpty);
 
-		var min = e.Current;
-		var max = e.Current;
+		return CanBeNaN<T>()
+			? FromEnumeratorCanBeNaN(e)
+			: FromEnumerator(e);
+	}
+
+	static Range<T> FromEnumerator<T>(IEnumerator<T> e)
+		where T : IComparable<T>
+	{
+		var c = e.Current;
+		var min = c;
+		var max = c;
 
 		while (e.MoveNext())
 		{
-			var c = e.Current;
+			c = e.Current;
 			if (c.CompareTo(min) < 0) min = c;
 			if (c.CompareTo(max) > 0) max = c;
 		}
@@ -125,53 +102,49 @@ public static partial class RangeExtensions
 		return new Range<T>(min, max);
 	}
 
-	/// <remarks>NaN values are ignored.</remarks>
-	/// <inheritdoc cref="Range{T}(IEnumerable{T}, T)"/>
-	public static Range<float> Range(this IEnumerable<float> values)
+	static Range<T> FromEnumeratorCanBeNaN<T>(IEnumerator<T> e)
+		where T : IComparable<T>
 	{
-		if (values is null)
-			throw new ArgumentNullException(nameof(values));
-		Contract.EndContractBlock();
+		var c = e.Current;
+		while (IsNaN(c) && e.MoveNext())
+			c = e.Current;
 
-		var max = float.NegativeInfinity;
-		var min = float.PositiveInfinity;
+		var min = c;
+		var max = c;
 
-		foreach (var value in values)
+		while (e.MoveNext())
 		{
-			if (float.IsNaN(value)) continue;
-			if (value < min)
-				min = value;
-			if (value > max)
-				max = value;
+			c = e.Current;
+			if (IsNaN(c)) continue;
+			if (c.CompareTo(min) < 0) min = c;
+			if (c.CompareTo(max) > 0) max = c;
 		}
 
-		return max < min ?
-			new Range<float>(float.NaN, float.NaN) :
-			new Range<float>(min, max);
+		return new Range<T>(min, max);
 	}
 
-	/// <inheritdoc cref="Range(IEnumerable{float})"/>
-	public static Range<double> Range(this IEnumerable<double> values)
+	static Range<T> FromEnumeratorCanBeNaN<T>(IEnumerator<T> e, T defaultIfNaN)
+		where T : IComparable<T>
 	{
-		if (values is null)
-			throw new ArgumentNullException(nameof(values));
-		Contract.EndContractBlock();
+		var c = e.Current;
+		while (IsNaN(c) && e.MoveNext())
+			c = e.Current;
 
-		var max = double.NegativeInfinity;
-		var min = double.PositiveInfinity;
+		var min = c;
+		var max = c;
 
-		foreach (var value in values)
+		while (e.MoveNext())
 		{
-			if (double.IsNaN(value)) continue;
-			if (value < min)
-				min = value;
-			if (value > max)
-				max = value;
+			if (IsNaN(c)) continue;
+			c = e.Current;
+			if (c.CompareTo(min) < 0) min = c;
+			if (c.CompareTo(max) > 0) max = c;
 		}
 
-		return max < min ?
-			new Range<double>(double.NaN, double.NaN) :
-			new Range<double>(min, max);
+		if (IsNaN(min)) min = defaultIfNaN;
+		if (IsNaN(max)) max = defaultIfNaN;
+
+		return new Range<T>(min, max);
 	}
 
 	/// <remarks>Use this method of the time to return from the selector could be lengthy.</remarks>
@@ -200,229 +173,127 @@ public static partial class RangeExtensions
 					max = value;
 		});
 
-		return max < min ?
-			new Range<double>(double.NaN, double.NaN) :
-			new Range<double>(min, max);
+		return new Range<double>(min, max);
 	}
 
 	#region IRange<float> Arithmetic
-	public static IRange<float> SumWith(this IRange<float> r1, IRange<float> r2)
-	{
-		if (r1 is null)
-			throw new ArgumentNullException(nameof(r1));
-		if (r2 is null)
-			throw new ArgumentNullException(nameof(r2));
-		Contract.EndContractBlock();
+	/// <inheritdoc cref="SumWith{T}(Open.Range{T}, Open.Range{T})"/>
+	[ExcludeFromCodeCoverage]
+	public static Range<float> SumWith(this Range<float> r1, Range<float> r2)
+		=> new(r1.Low + r2.Low, r1.High + r2.High);
 
-		return new Range<float>(r1.Low + r2.Low, r1.High + r2.High);
-	}
+	/// <inheritdoc cref="Subtract{T}(Open.Range{T}, Open.Range{T})"/>
+	[ExcludeFromCodeCoverage]
+	public static Range<float> Subtract(this Range<float> r1, Range<float> r2)
+		=> new(r1.Low - r2.Low, r1.High - r2.High);
 
-	public static IRange<float> Subtract(this IRange<float> r1, IRange<float> r2)
-	{
-		if (r1 is null)
-			throw new ArgumentNullException(nameof(r1));
-		if (r2 is null)
-			throw new ArgumentNullException(nameof(r2));
-		Contract.EndContractBlock();
+	/// <inheritdoc cref="MultiplyBy{T}(Open.Range{T}, Open.Range{T})"/>
+	[ExcludeFromCodeCoverage]
+	public static Range<float> MultiplyBy(this Range<float> r1, Range<float> r2)
+		=> new(r1.Low * r2.Low, r1.High * r2.High);
 
-		return new Range<float>(r1.Low - r2.Low, r1.High - r2.High);
-	}
-
-	public static IRange<float> MultiplyBy(this IRange<float> r1, IRange<float> r2)
-	{
-		if (r1 is null)
-			throw new ArgumentNullException(nameof(r1));
-		if (r2 is null)
-			throw new ArgumentNullException(nameof(r2));
-		Contract.EndContractBlock();
-
-		return new Range<float>(r1.Low * r2.Low, r1.High * r2.High);
-	}
-
-	public static IRange<float> DivideBy(this IRange<float> r1, IRange<float> r2)
-	{
-		if (r1 is null)
-			throw new ArgumentNullException(nameof(r1));
-		if (r2 is null)
-			throw new ArgumentNullException(nameof(r2));
-		Contract.EndContractBlock();
-
-		return new Range<float>(r1.Low / r2.Low, r1.High / r2.High);
-	}
+	/// <inheritdoc cref="DivideBy{T}(Open.Range{T}, Open.Range{T})"/>
+	[ExcludeFromCodeCoverage]
+	public static Range<float> DivideBy(this Range<float> r1, Range<float> r2)
+		=> new(r1.Low / r2.Low, r1.High / r2.High);
 	#endregion
 
 	#region IRange<double> Arithmetic
-	public static IRange<double> SumWith(this IRange<double> r1, IRange<double> r2)
-	{
-		if (r1 is null)
-			throw new ArgumentNullException(nameof(r1));
-		if (r2 is null)
-			throw new ArgumentNullException(nameof(r2));
-		Contract.EndContractBlock();
+	/// <inheritdoc cref="SumWith{T}(Open.Range{T}, Open.Range{T})"/>
+	[ExcludeFromCodeCoverage]
+	public static Range<double> SumWith(this Range<double> r1, Range<double> r2)
+		=> new(r1.Low + r2.Low, r1.High + r2.High);
 
-		return new Range<double>(r1.Low + r2.Low, r1.High + r2.High);
-	}
+	/// <inheritdoc cref="Subtract{T}(Open.Range{T}, Open.Range{T})"/>
+	[ExcludeFromCodeCoverage]
+	public static Range<double> Subtract(this Range<double> r1, Range<double> r2)
+		=> new(r1.Low - r2.Low, r1.High - r2.High);
 
-	public static IRange<double> Subtract(this IRange<double> r1, IRange<double> r2)
-	{
-		if (r1 is null)
-			throw new ArgumentNullException(nameof(r1));
-		if (r2 is null)
-			throw new ArgumentNullException(nameof(r2));
-		Contract.EndContractBlock();
+	/// <inheritdoc cref="MultiplyBy{T}(Open.Range{T}, Open.Range{T})"/>
+	[ExcludeFromCodeCoverage]
+	public static Range<double> MultiplyBy(this Range<double> r1, Range<double> r2)
+		=> new(r1.Low * r2.Low, r1.High * r2.High);
 
-		return new Range<double>(r1.Low - r2.Low, r1.High - r2.High);
-	}
-
-	public static IRange<double> MultiplyBy(this IRange<double> r1, IRange<double> r2)
-	{
-		if (r1 is null)
-			throw new ArgumentNullException(nameof(r1));
-		if (r2 is null)
-			throw new ArgumentNullException(nameof(r2));
-		Contract.EndContractBlock();
-
-		return new Range<double>(r1.Low * r2.Low, r1.High * r2.High);
-	}
-
-	public static IRange<double> DivideBy(this IRange<double> r1, IRange<float> r2)
-	{
-		if (r1 is null)
-			throw new ArgumentNullException(nameof(r1));
-		if (r2 is null)
-			throw new ArgumentNullException(nameof(r2));
-		Contract.EndContractBlock();
-
-		return new Range<double>(r1.Low / r2.Low, r1.High / r2.High);
-	}
+	/// <inheritdoc cref="DivideBy{T}(Open.Range{T}, Open.Range{T})"/>
+	[ExcludeFromCodeCoverage]
+	public static Range<double> DivideBy(this Range<double> r1, Range<float> r2)
+		=> new(r1.Low / r2.Low, r1.High / r2.High);
 	#endregion
 
 	#region IRange<int> Arithmetic
-	public static IRange<int> SumWith(this IRange<int> r1, IRange<int> r2)
-	{
-		if (r1 is null)
-			throw new ArgumentNullException(nameof(r1));
-		if (r2 is null)
-			throw new ArgumentNullException(nameof(r2));
-		Contract.EndContractBlock();
+	/// <inheritdoc cref="SumWith{T}(Open.Range{T}, Open.Range{T})"/>
+	[ExcludeFromCodeCoverage]
+	public static Range<int> SumWith(this Range<int> r1, Range<int> r2)
+		=> new(r1.Low + r2.Low, r1.High + r2.High);
 
-		return new Range<int>(r1.Low + r2.Low, r1.High + r2.High);
-	}
+	/// <inheritdoc cref="Subtract{T}(Open.Range{T}, Open.Range{T})"/>
+	[ExcludeFromCodeCoverage]
+	public static Range<int> Subtract(this Range<int> r1, Range<int> r2)
+		=> new(r1.Low - r2.Low, r1.High - r2.High);
 
-	public static IRange<int> Subtract(this IRange<int> r1, IRange<int> r2)
-	{
-		if (r1 is null)
-			throw new ArgumentNullException(nameof(r1));
-		if (r2 is null)
-			throw new ArgumentNullException(nameof(r2));
-		Contract.EndContractBlock();
+	/// <inheritdoc cref="MultiplyBy{T}(Open.Range{T}, Open.Range{T})"/>
+	[ExcludeFromCodeCoverage]
+	public static Range<int> MultiplyBy(this Range<int> r1, Range<int> r2)
+		=> new(r1.Low * r2.Low, r1.High * r2.High);
 
-		return new Range<int>(r1.Low - r2.Low, r1.High - r2.High);
-	}
-
-	public static IRange<int> MultiplyBy(this IRange<int> r1, IRange<int> r2)
-	{
-		if (r1 is null)
-			throw new ArgumentNullException(nameof(r1));
-		if (r2 is null)
-			throw new ArgumentNullException(nameof(r2));
-		Contract.EndContractBlock();
-
-		return new Range<int>(r1.Low * r2.Low, r1.High * r2.High);
-	}
-
-	public static IRange<int> DivideBy(this IRange<int> r1, IRange<int> r2)
-	{
-		if (r1 is null)
-			throw new ArgumentNullException(nameof(r1));
-		if (r2 is null)
-			throw new ArgumentNullException(nameof(r2));
-		Contract.EndContractBlock();
-
-		return new Range<int>(r1.Low / r2.Low, r1.High / r2.High);
-	}
+	/// <inheritdoc cref="DivideBy{T}(Open.Range{T}, Open.Range{T})"/>
+	[ExcludeFromCodeCoverage]
+	public static Range<int> DivideBy(this Range<int> r1, Range<int> r2)
+		=> new(r1.Low / r2.Low, r1.High / r2.High);
 	#endregion
 
 	#region IRange<TimeSpan> Arithmetic
-	public static IRange<TimeSpan> SumWith(this IRange<TimeSpan> r1, IRange<TimeSpan> r2)
-	{
-		if (r1 is null)
-			throw new ArgumentNullException(nameof(r1));
-		if (r2 is null)
-			throw new ArgumentNullException(nameof(r2));
-		Contract.EndContractBlock();
+	/// <inheritdoc cref="SumWith{T}(Open.Range{T}, Open.Range{T})"/>
+	[ExcludeFromCodeCoverage]
+	public static Range<TimeSpan> SumWith(this Range<TimeSpan> r1, Range<TimeSpan> r2)
+		=> new(r1.Low + r2.Low, r1.High + r2.High);
 
-		return new Range<TimeSpan>(r1.Low + r2.Low, r1.High + r2.High);
-	}
-
-	public static IRange<TimeSpan> Subtract(this IRange<TimeSpan> r1, IRange<TimeSpan> r2)
-	{
-		if (r1 is null)
-			throw new ArgumentNullException(nameof(r1));
-		if (r2 is null)
-			throw new ArgumentNullException(nameof(r2));
-		Contract.EndContractBlock();
-
-		return new Range<TimeSpan>(r1.Low - r2.Low, r1.High - r2.High);
-	}
+	/// <inheritdoc cref="Subtract{T}(Open.Range{T}, Open.Range{T})"/>
+	[ExcludeFromCodeCoverage]
+	public static Range<TimeSpan> Subtract(this Range<TimeSpan> r1, Range<TimeSpan> r2)
+		=> new(r1.Low - r2.Low, r1.High - r2.High);
 	#endregion
 
 	#region IRange<IComparable> Arithmetic
-	public static IRange<T> SumWith<T>(this IRange<T> r1, IRange<T> r2)
+	/// <summary>
+	/// Attempts to sum two ranges together.<br/>
+	/// </summary>
+	[ExcludeFromCodeCoverage]
+	public static Range<T> SumWith<T>(this Range<T> r1, Range<T> r2)
 		where T : struct, IComparable, IComparable<T>
-	{
-		if (r1 is null)
-			throw new ArgumentNullException(nameof(r1));
-		if (r2 is null)
-			throw new ArgumentNullException(nameof(r2));
-		Contract.EndContractBlock();
+		=> new(r1.Low.AddValue(r2.Low), r1.High.AddValue(r2.High));
 
-		return new Range<T>(r1.Low.AddValue(r2.Low), r1.High.AddValue(r2.High));
-	}
-
-	public static IRange<T> Subtract<T>(this IRange<T> r1, IRange<T> r2)
+	/// <summary>
+	/// Attempts to subtract one range from another.
+	/// </summary>
+	[ExcludeFromCodeCoverage]
+	public static Range<T> Subtract<T>(this Range<T> r1, Range<T> r2)
 		where T : struct, IComparable, IComparable<T>
-	{
-		if (r1 is null)
-			throw new ArgumentNullException(nameof(r1));
-		if (r2 is null)
-			throw new ArgumentNullException(nameof(r2));
-		Contract.EndContractBlock();
+		=> new(r1.Low.SubtractValue(r2.Low), r1.High.SubtractValue(r2.High));
 
-		return new Range<T>(r1.Low.SubtractValue(r2.Low), r1.High.SubtractValue(r2.High));
-	}
-
-	public static IRange<T> MultiplyBy<T>(this IRange<T> r1, IRange<T> r2)
+	/// <summary>
+	/// Attempts to mutiply two ranges together.
+	/// </summary>
+	[ExcludeFromCodeCoverage]
+	public static Range<T> MultiplyBy<T>(this Range<T> r1, Range<T> r2)
 		where T : struct, IComparable, IComparable<T>
-	{
-		if (r1 is null)
-			throw new ArgumentNullException(nameof(r1));
-		if (r2 is null)
-			throw new ArgumentNullException(nameof(r2));
-		Contract.EndContractBlock();
+		=> new(r1.Low.MultiplyBy(r2.Low), r1.High.MultiplyBy(r2.High));
 
-		return new Range<T>(r1.Low.MultiplyBy(r2.Low), r1.High.MultiplyBy(r2.High));
-	}
-
-	public static IRange<T> DivideBy<T>(this IRange<T> r1, IRange<T> r2)
+	/// <summary>
+	/// Attempts to divide one range by another.
+	/// </summary>
+	[ExcludeFromCodeCoverage]
+	public static Range<T> DivideBy<T>(this Range<T> r1, Range<T> r2)
 		where T : struct, IComparable, IComparable<T>
-	{
-		if (r1 is null)
-			throw new ArgumentNullException(nameof(r1));
-		if (r2 is null)
-			throw new ArgumentNullException(nameof(r2));
-		Contract.EndContractBlock();
-
-		return new Range<T>(r1.Low.DivideBy(r2.Low), r1.High.DivideBy(r2.High));
-	}
+		=> new(r1.Low.DivideBy(r2.Low), r1.High.DivideBy(r2.High));
 	#endregion
 
 
 	/// <summary>
 	/// Determines the difference in values (subtracting) from high to low.
 	/// </summary>
-	/// <param name="target"></param>
-	/// <exception cref="ArgumentNullException"></exception>
+	/// <exception cref="ArgumentNullException">If the <paramref name="target"/> is null.</exception>
+	[ExcludeFromCodeCoverage]
 	public static T Delta<T>(this IRange<T> target)
 		where T : struct, IComparable<T>, IComparable
 	{
@@ -433,6 +304,8 @@ public static partial class RangeExtensions
 		return target.High.SubtractValue(target.Low);
 	}
 
+	/// <inheritdoc cref="Delta{T}(IRange{T})"/>
+	[ExcludeFromCodeCoverage]
 	public static int Delta(this IRange<int> target)
 	{
 		if (target is null)
@@ -442,6 +315,8 @@ public static partial class RangeExtensions
 		return target.High - target.Low;
 	}
 
+	/// <inheritdoc cref="Delta{T}(IRange{T})"/>
+	[ExcludeFromCodeCoverage]
 	public static long Delta(this IRange<long> target)
 	{
 		if (target is null)
@@ -451,6 +326,8 @@ public static partial class RangeExtensions
 		return target.High - target.Low;
 	}
 
+	/// <inheritdoc cref="Delta{T}(IRange{T})"/>
+	[ExcludeFromCodeCoverage]
 	public static float Delta(this IRange<float> target)
 	{
 		if (target is null)
@@ -460,6 +337,8 @@ public static partial class RangeExtensions
 		return target.High - target.Low;
 	}
 
+	/// <inheritdoc cref="Delta{T}(IRange{T})"/>
+	[ExcludeFromCodeCoverage]
 	public static double Delta(this IRange<double> target)
 	{
 		if (target is null)
@@ -469,6 +348,8 @@ public static partial class RangeExtensions
 		return target.High - target.Low;
 	}
 
+	/// <inheritdoc cref="Delta{T}(IRange{T})"/>
+	[ExcludeFromCodeCoverage]
 	public static TimeSpan Delta(this IRange<TimeSpan> target)
 	{
 		if (target is null)
@@ -478,6 +359,8 @@ public static partial class RangeExtensions
 		return target.High - target.Low;
 	}
 
+	/// <inheritdoc cref="Delta{T}(IRange{T})"/>
+	[ExcludeFromCodeCoverage]
 	public static TimeSpan Delta(this IRange<DateTime> target)
 	{
 		if (target is null)
@@ -487,6 +370,12 @@ public static partial class RangeExtensions
 		return TimeSpan.FromTicks(target.High.Ticks - target.Low.Ticks);
 	}
 
+	/// <summary>
+	/// Returns all the dates from the low of the range to the high.
+	/// </summary>
+	/// <param name="target">The range of dates to build from.</param>
+	/// <param name="inclusive">If the high value should be included (only matters if the time of day is zero.</param>
+	/// <exception cref="ArgumentNullException">If the <paramref name="target"/> is null.</exception>
 	public static IEnumerable<DateTime> Dates(this IRange<DateTime> target, bool inclusive = false)
 	{
 		if (target is null)

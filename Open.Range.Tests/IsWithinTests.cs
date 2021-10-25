@@ -1,6 +1,8 @@
+using FluentAssertions;
 using Xunit;
 
 namespace Open.RangeTests;
+
 public static class IsWithinTests
 {
 	[Theory]
@@ -9,23 +11,32 @@ public static class IsWithinTests
 	[InlineData(1, 3, 3)]
 	public static void IsInRange(int low, int value, int high)
 	{
-		Assert.True(value.IsInRange(low, high));
+		value.IsInRange(low, high)
+			.Should().BeTrue();
 
-		var range = Range.From(low).To(high);
-		Assert.True(range.Contains(value));
+		Range.From(low).To(high).Contains(value)
+			.Should().BeTrue();
+		Range.Include(low, high).Contains(value)
+			.Should().BeTrue();
 
 		float f = value;
-		Assert.True(f.IsInRange(low, high));
+		f.IsInRange(low, high)
+			.Should().BeTrue();
 		var fr = Range.From((float)low).To(high);
-		Assert.True(fr.Contains(value));
+		fr.Contains(value)
+			.Should().BeTrue();
 
 		double d = value;
-		Assert.True(d.IsInRange(low, high));
+		d.IsInRange(low, high)
+			.Should().BeTrue();
 		var dr = Range.From((double)low).To(high);
-		Assert.True(dr.Contains(value));
+		dr.Contains(value)
+			.Should().BeTrue();
 
-		Assert.False(float.NaN.IsInRange(low, high));
-		Assert.False(double.NaN.IsInRange(low, high));
+		float.NaN.IsInRange(low, high)
+			.Should().BeFalse();
+		double.NaN.IsInRange(low, high)
+			.Should().BeFalse();
 	}
 
 	[Theory]
@@ -33,16 +44,16 @@ public static class IsWithinTests
 	[InlineData(1, 0, 3)]
 	public static void IsNotInRange(int low, int value, int high)
 	{
-		Assert.False(value.IsInRange(low, high));
+		value.IsInRange(low, high).Should().BeFalse();
 
 		var range = Range.From(low).To(high);
-		Assert.False(range.Contains(value));
+		range.Contains(value).Should().BeFalse();
 
 		float f = value;
-		Assert.False(f.IsInRange(low, high));
+		f.IsInRange(low, high).Should().BeFalse();
 
 		double d = value;
-		Assert.False(d.IsInRange(low, high));
+		d.IsInRange(low, high).Should().BeFalse();
 	}
 
 	[Theory]
@@ -50,23 +61,28 @@ public static class IsWithinTests
 	[InlineData(1, 3, 4)]
 	public static void IsInBounds(int low, int value, int high)
 	{
-		Assert.True(value.IsInBounds(low, high));
+		value.IsInBounds(low, high)
+			.Should().BeTrue();
 
-		var range = Range.Above(low).Below(high);
-		Assert.True(range.Contains(value));
+		Range.Above(low).Below(high).Contains(value)
+			.Should().BeTrue();
+		Range.Between(low, high).Contains(value)
+			.Should().BeTrue();
 
-		float f = value;
-		Assert.True(f.IsInBounds(low, high));
-		var fr = Range.Above((float)low).Below(high);
-		Assert.True(fr.Contains(value));
+		((float)value).IsInBounds(low, high)
+			.Should().BeTrue();
+		Range.Above((float)low).Below(high).Contains(value)
+			.Should().BeTrue();
 
-		double d = value;
-		Assert.True(d.IsInBounds(low, high));
-		var dr = Range.Above((double)low).Below(high);
-		Assert.True(dr.Contains(value));
+		((double)value).IsInBounds(low, high)
+			.Should().BeTrue();
+		Range.Above((double)low).Below(high).Contains(value)
+			.Should().BeTrue();
 
-		Assert.False(float.NaN.IsInBounds(low, high));
-		Assert.False(double.NaN.IsInBounds(low, high));
+		float.NaN.IsInBounds(low, high)
+			.Should().BeFalse();
+		double.NaN.IsInBounds(low, high)
+			.Should().BeFalse();
 	}
 
 	[Theory]
@@ -76,15 +92,16 @@ public static class IsWithinTests
 	[InlineData(1, 1, 3)]
 	public static void IsNotInBounds(int low, int value, int high)
 	{
-		Assert.False(value.IsInBounds(low, high));
+		value.IsInBounds(low, high)
+			.Should().BeFalse();
 
-		var range = Range.Above(low).Below(high);
-		Assert.False(range.Contains(value));
+		Range.Above(low).Below(high).Contains(value)
+			.Should().BeFalse();
 
-		float f = value;
-		Assert.False(f.IsInBounds(low, high));
+		((float)value).IsInBounds(low, high)
+			.Should().BeFalse();
 
-		double d = value;
-		Assert.False(d.IsInBounds(low, high));
+		((double)value).IsInBounds(low, high)
+			.Should().BeFalse();
 	}
 }

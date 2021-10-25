@@ -13,6 +13,8 @@
 		</PackageReference>
 		<PackageReference Include="FluentAssertions" Version="6.1.0" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+		<PackageReference Include="NUnit" Version="3.13.2" />
+		<PackageReference Include="ReportGenerator" Version="4.8.13" />
 		<PackageReference Include="xunit" Version="2.4.1" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -23,10 +25,6 @@
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 	</ItemGroup>
-
-	<Target Name="GenerateHtmlCoverageReport" AfterTargets="GenerateCoverageResultAfterTest">
-		<ReportGenerator ReportFiles="@(CoverletReport)" TargetDirectory="./html-coverage-report" />
-	</Target>
 
 	<ItemGroup>
 	  <ProjectReference Include="..\Open.Range\Open.Range.csproj" />

@@ -36,17 +36,24 @@ public class BoundaryTests
 	{
 		var a = Boundary.Create(value, inclusive);
 		var b = Boundary.Create(value, inclusive);
-		a.Equals(b).Should().BeTrue();
-		a.CompareTo(b).Should().Be(0);
+		a.Equals((object)b).Should().BeTrue();
+		(a == b).Should().BeTrue();
+		(a >= b).Should().BeTrue();
+		(a <= b).Should().BeTrue();
 		a.GetHashCode().Should().Be(b.GetHashCode());
+
 		var c = Boundary.Create(value + 1, inclusive);
-		a.Equals(c).Should().BeFalse();
-		a.CompareTo(c).Should().BeNegative();
+		(a != c).Should().BeTrue();
+		(a < c).Should().BeTrue();
+		(a <= c).Should().BeTrue();
 		a.GetHashCode().Should().NotBe(c.GetHashCode());
+
 		c = Boundary.Create(value - 1, inclusive);
-		a.Equals(c).Should().BeFalse();
-		a.CompareTo(c).Should().BePositive();
+		(a == c).Should().BeFalse();
+		(a > c).Should().BeTrue();
+		(a >= c).Should().BeTrue();
 		a.GetHashCode().Should().NotBe(c.GetHashCode());
+
 		var d = Boundary.Create(value, !inclusive);
 		d.Equals(c).Should().BeFalse();
 		d.CompareTo(c).Should().BePositive();
@@ -54,7 +61,7 @@ public class BoundaryTests
 		d.GetHashCode().Should().NotBe(a.GetHashCode());
 		a.Equals(d).Should().BeFalse();
 		Assert.Throws<ArgumentException>(
-			()=> a.CompareTo(d));
+			() => a.CompareTo(d));
 	}
 
 }

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using static Open.Utility;
 
 namespace Open;
@@ -18,6 +20,11 @@ public readonly struct Range<T> : IRange<T>, IEquatable<Range<T>>
 		Low = low;
 		High = high;
 	}
+
+	[ExcludeFromCodeCoverage]
+	public Range(
+		IRange<T> range)
+		: this((range ?? throw new ArgumentNullException(nameof(range))).Low, range.High) { }
 
 	#region IRange<T> 
 	/// <inheritdoc />
@@ -128,7 +135,15 @@ public static class Range
 		if (low is ICanRange l && !l.CanRangeWith(high))
 			return false;
 
-		return low.CompareTo(high) <= 0;
+		try
+		{
+			return low.CompareTo(high) <= 0;
+		}
+		// For comparables that don't implement ICanRange.
+		catch(ArgumentException)
+		{
+			return false;
+		}
 	}
 
 	/// <summary>

@@ -17,6 +17,14 @@ public readonly struct RangeWithValue<T, TValue>
 		Value = value;
 	}
 
+	public RangeWithValue(IRangeWithValue<T, TValue> source)
+	{
+		if (source is null) throw new ArgumentNullException(nameof(source));
+		Low = source.Low;
+		High = source.High;
+		Value = source.Value;
+	}
+
 
 	#region IRangeWithValue<T, TValue> 
 	/// <inheritdoc />
@@ -30,7 +38,7 @@ public readonly struct RangeWithValue<T, TValue>
 	#endregion
 
 	/// <inheritdoc />
-	public void Deconstruct(out T low, out T high, TValue value)
+	public void Deconstruct(out T low, out T high, out TValue value)
 	{
 		low = Low;
 		high = High;
