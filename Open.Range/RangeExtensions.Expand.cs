@@ -70,15 +70,71 @@ public static partial class RangeExtensions
 		where T : IComparable<T>
 		=> range.Expand(expansion.Low).Expand(expansion.High);
 
-	//public static bool TryIntersect<T>(
-	//	this Range<T> range, Range<T> other, out Range<T> result)
-	//	where T : IComparable<T>
-	//{
-	//	result = default;
-	//	if (!range.IsValidRange() || !result.IsValidRange())
-	//		return false;
+	/// <summary>
+	/// Attempts to derive the intersection of the 
+	/// </summary>
+	/// <typeparam name="T"></typeparam>
+	/// <param name="range"></param>
+	/// <param name="other"></param>
+	/// <param name="result"></param>
+	/// <returns></returns>
+	public static bool TryIntersect<T>(
+		this Range<T> range, Range<T> other, out Range<T> result)
+		where T : IComparable<T>
+	{
+		result = default;
+		var bHigh = range.High as IBoundary;
+		var cHiLo = bHigh is null
+			? range.High.CompareTo(other.Low)
+			: bHigh.CompareHighTo(other.Low);
 
+		// The other low is higher than this high?
+		if (cHiLo < 0) return false;
+		// The edges actually touch.
+		if (cHiLo == 0)
+		{
+			result = new(range.Low, other.High);
+			return true;
+		}
+		var bLow = range.Low as IBoundary;
+		var cLoHi = bLow is null
+			? range.Low.CompareTo(other.High)
+			: bLow.CompareLowTo(other.High);
 
-	//}
+		// The other high is lower than this low?
+		if (cLoHi > 0) return false;
+		// The edges actually touch.
+		if (cLoHi == 0)
+		{
+			result = new(other.Low, range.High);
+			return true;
+		}
+
+		var cLow = bLow is null
+			? range.Low.CompareTo(other.Low)
+			: bLow.CompareLowTo(other.Low);
+		var cHigh = bHigh is null
+			? range.High.CompareTo(other.High)
+			: bHigh.CompareHighTo(other.High);
+
+		// is this within or exactly equal to the other range?
+		if (cLow >= 0 && cHigh <= 0)
+		{
+			result = range;
+			return true;
+		}
+
+		// Is the other range within the bounds?
+		if (cLow < 0 && cHigh > 0)
+		{
+			result = other;
+			return true;
+		}
+
+		// All other possibilities.
+		result = new(cLow > 0 ? range.Low : other.Low, cHigh < 0 ? range.High : other.High);
+		return true;
+		
+	}
 }
 
