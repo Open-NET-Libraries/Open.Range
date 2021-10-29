@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Open;
 
+[ExcludeFromCodeCoverage]
 public readonly struct RangeWithValue<T, TValue>
 	: IRange<T>, IEquatable<RangeWithValue<T, TValue>>
 	where T : IComparable<T>

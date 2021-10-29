@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using static Open.Utility;
 
@@ -72,7 +73,7 @@ public readonly struct Boundary<T>
 	/// <param name="inclusive"></param>
 	public Boundary(T value, bool inclusive)
 	{
-		if(value is null) throw new ArgumentNullException(nameof(value));
+		if (value is null) throw new ArgumentNullException(nameof(value));
 		if (IsNaN(value)) throw new ArgumentException("Boundaries cannot be NaN.");
 		Value = value;
 		Inclusive = inclusive;
@@ -86,6 +87,7 @@ public readonly struct Boundary<T>
 	/// </summary>
 	public bool Inclusive { get; }
 
+	[ExcludeFromCodeCoverage]
 	object IBoundary.Value => Value;
 
 	/// <inheritdoc />
@@ -102,7 +104,8 @@ public readonly struct Boundary<T>
 
 	/// <inheritdoc />
 	public override bool Equals(object? obj)
-		=> obj is Boundary<T> boundary && Equals(boundary);
+		=> obj is Boundary<T> boundary
+		&& Equals(boundary);
 
 	/// <inheritdoc />
 #if NETSTANDARD2_1_OR_GREATER
@@ -122,7 +125,7 @@ public readonly struct Boundary<T>
 	public int CompareTo(Boundary<T> other)
 	{
 		var c = Value.CompareTo(other.Value);
-		if (c == 0 && Inclusive != other.Inclusive)
+		if (Inclusive != other.Inclusive && c == 0)
 			throw new ArgumentException("Cannot compare an inclusive against a non-inclusive of equal value.");
 		return c;
 	}
@@ -131,12 +134,13 @@ public readonly struct Boundary<T>
 	/// Returns true if the boundary values are not equal or both are inclusive.
 	/// </summary>
 	public bool CanRangeWith(Boundary<T> other)
-		=> Value.CompareTo(other.Value) != 0
-		|| Inclusive && other.Inclusive;
+		=> Inclusive && other.Inclusive
+		|| Value.CompareTo(other.Value) != 0;
 
 	/// <inheritdoc />
 	public bool CanRangeWith(object other)
-		=> other is Boundary<T> o && CanRangeWith(o);
+		=> other is Boundary<T> o
+		&& CanRangeWith(o);
 
 	public override string ToString()
 		=> $"Boundary<{typeof(T)}>({Value}, {Inclusive})";
@@ -146,7 +150,7 @@ public readonly struct Boundary<T>
 	{
 		if (other is null) throw new ArgumentNullException(nameof(other));
 		var c = Value.CompareTo(other.Value);
-		if (c != 0 || Inclusive && other.Inclusive) return c;
+		if (Inclusive == other.Inclusive || c != 0) return c;
 		return Inclusive && !other.Inclusive ? -1 : +1;
 	}
 
@@ -157,7 +161,7 @@ public readonly struct Boundary<T>
 		Contract.EndContractBlock();
 
 		var c = Value.CompareTo(other.Value);
-		if (c != 0 || Inclusive && other.Inclusive) return c;
+		if (Inclusive == other.Inclusive || c != 0) return c;
 		return Inclusive && !other.Inclusive ? +1 : -1;
 	}
 
@@ -167,11 +171,11 @@ public readonly struct Boundary<T>
 		if (other is IBoundary<T> bT) return CompareLowTo(bT);
 		if (other is null) throw new ArgumentNullException(nameof(other));
 		if (other is not IBoundary b) throw new ArgumentException($"Expected IBoundary. Actual: {other.GetType()}", nameof(other));
-		if(b.Value is not T t) throw new ArgumentException($"Expected other.Value of type {typeof(T)}. Actual: {b.Value.GetType()}", nameof(other));
+		if (b.Value is not T t) throw new ArgumentException($"Expected other.Value of type {typeof(T)}. Actual: {b.Value.GetType()}", nameof(other));
 		Contract.EndContractBlock();
 
 		var c = Value.CompareTo(t);
-		if (c != 0 || Inclusive && b.Inclusive) return c;
+		if (Inclusive == b.Inclusive || c != 0) return c;
 		return Inclusive && !b.Inclusive ? -1 : +1;
 	}
 
@@ -185,7 +189,7 @@ public readonly struct Boundary<T>
 		Contract.EndContractBlock();
 
 		var c = Value.CompareTo(t);
-		if (c != 0 || Inclusive && b.Inclusive) return c;
+		if (Inclusive == b.Inclusive || c != 0) return c;
 		return Inclusive && !b.Inclusive ? +1 : -1;
 	}
 

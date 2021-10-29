@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace Open;
 
+[ExcludeFromCodeCoverage]
 public readonly struct RangeTimeIndexed<T> : IRangeTimeIndexed<T>, IEquatable<RangeTimeIndexed<T>>
 		where T : IComparable<T>
 {

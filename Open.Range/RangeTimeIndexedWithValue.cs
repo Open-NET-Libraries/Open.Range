@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace Open;
 
+[ExcludeFromCodeCoverage]
 public class RangeTimeIndexedWithValue<T, TValue>
 	: IRangeWithValue<T, TValue>, IRangeTimeIndexed<T>, IEquatable<RangeTimeIndexedWithValue<T, TValue>>
 	where T : IComparable<T>
@@ -78,6 +80,7 @@ public class RangeTimeIndexedWithValue<T, TValue>
 
 }
 
+[ExcludeFromCodeCoverage]
 public class RangeTimeIndexedWithValue<T>
 	: RangeTimeIndexedWithValue<T, T>
 	where T : IComparable<T>
