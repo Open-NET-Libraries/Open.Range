@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using static Open.Utility;
@@ -62,8 +61,8 @@ public interface IBoundary<T> : IBoundary
 /// Implicity converts to <typeparamref name="T"/>.
 /// When using Range&lt;Boundary&lt;T&gt;&gt;, this allows for differentiating if a value can be equal to the boundary value or only up to it.
 /// </remarks>
-public readonly struct Boundary<T>
-	: IBoundary<T>, IEquatable<Boundary<T>>, IComparable<Boundary<T>>, ICanRange<Boundary<T>>
+public readonly record struct Boundary<T>
+	: IBoundary<T>, IComparable<Boundary<T>>, ICanRange<Boundary<T>>
 	where T : IComparable<T>
 {
 	/// <summary>
@@ -97,31 +96,6 @@ public readonly struct Boundary<T>
 		inclusive = Inclusive;
 	}
 
-	/// <inheritdoc />
-	public bool Equals(Boundary<T> other)
-		=> Inclusive == other.Inclusive
-		&& EqualityComparer<T>.Default.Equals(Value, other.Value);
-
-	/// <inheritdoc />
-	public override bool Equals(object? obj)
-		=> obj is Boundary<T> boundary
-		&& Equals(boundary);
-
-	/// <inheritdoc />
-#if NETSTANDARD2_1_OR_GREATER
-	public override int GetHashCode()
-		=> HashCode.Combine(Value, Inclusive);
-#else
-	public override int GetHashCode()
-	{
-		int hashCode = 593764356;
-		hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(Value);
-		hashCode = hashCode * -1521134295 + EqualityComparer<bool>.Default.GetHashCode(Inclusive);
-		return hashCode;
-	}
-#endif
-
-	/// <inheritdoc />
 	public int CompareTo(Boundary<T> other)
 	{
 		var c = Value.CompareTo(other.Value);
@@ -193,14 +167,8 @@ public readonly struct Boundary<T>
 		return Inclusive && !b.Inclusive ? +1 : -1;
 	}
 
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2225:Operator overloads have named alternates", Justification = "Provided by 'Value' property.")]
+	[SuppressMessage("Usage", "CA2225:Operator overloads have named alternates", Justification = "Provided by 'Value' property.")]
 	public static implicit operator T(Boundary<T> boundary) => boundary.Value;
-
-	/// <inheritdoc />
-	public static bool operator ==(Boundary<T> left, Boundary<T> right) => left.Equals(right);
-
-	/// <inheritdoc />
-	public static bool operator !=(Boundary<T> left, Boundary<T> right) => !left.Equals(right);
 
 	/// <inheritdoc />
 	public static bool operator <(Boundary<T> left, Boundary<T> right) => left.CompareTo(right) < 0;

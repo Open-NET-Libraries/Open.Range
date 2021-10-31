@@ -1,13 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 
 namespace Open;
 
 [ExcludeFromCodeCoverage]
-public class RangeTimeIndexedWithValue<T, TValue>
-	: IRangeWithValue<T, TValue>, IRangeTimeIndexed<T>, IEquatable<RangeTimeIndexedWithValue<T, TValue>>
+public record class RangeTimeIndexedWithValue<T, TValue>
+	: IRangeWithValue<T, TValue>, IRangeTimeIndexed<T>
 	where T : IComparable<T>
 {
 	public RangeTimeIndexedWithValue(
@@ -16,6 +15,8 @@ public class RangeTimeIndexedWithValue<T, TValue>
 		T high,
 		TValue value)
 	{
+		Range.AssertIsValid(low, high);
+
 		DateTime = datetime;
 		Low = low;
 		High = high;
@@ -42,7 +43,6 @@ public class RangeTimeIndexedWithValue<T, TValue>
 		value = Value;
 	}
 
-	/// <inheritdoc />
 	public override string ToString()
 		=> $"{DateTime.ToString(CultureInfo.InvariantCulture)}:[{Low} - {High}]({Value})";
 
@@ -50,38 +50,10 @@ public class RangeTimeIndexedWithValue<T, TValue>
 	public DateTime DateTime { get; }
 	#endregion
 
-	/// <inheritdoc />
-	public bool Equals(RangeTimeIndexedWithValue<T, TValue> other)
-		=> other != null
-		&& DateTime.Equals(other.DateTime)
-		&& EqualityComparer<T>.Default.Equals(Low, other.Low)
-		&& EqualityComparer<T>.Default.Equals(High, other.High)
-		&& EqualityComparer<TValue>.Default.Equals(Value, other.Value);
-
-	/// <inheritdoc />
-	public override bool Equals(object range)
-		=> range is RangeTimeIndexedWithValue<T, TValue> r && Equals(r);
-
-	/// <inheritdoc />
-#if NETSTANDARD2_1_OR_GREATER
-	public override int GetHashCode()
-		=> HashCode.Combine(DateTime, Low, High, Value);
-#else
-	public override int GetHashCode()
-	{
-		int hashCode = 593764356;
-		hashCode = hashCode * -1521134295 + DateTime.GetHashCode();
-		hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(Low);
-		hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(High);
-		hashCode = hashCode * -1521134295 + EqualityComparer<TValue>.Default.GetHashCode(Value);
-		return hashCode;
-	}
-#endif
-
 }
 
 [ExcludeFromCodeCoverage]
-public class RangeTimeIndexedWithValue<T>
+public record class RangeTimeIndexedWithValue<T>
 	: RangeTimeIndexedWithValue<T, T>
 	where T : IComparable<T>
 {

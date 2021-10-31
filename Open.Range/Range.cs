@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using static Open.Utility;
 
@@ -9,7 +7,7 @@ namespace Open;
 /// <summary>
 /// Represents a low and a high value where the low must be less than or equal to the high.
 /// </summary>
-public readonly struct Range<T> : IRange<T>, IEquatable<Range<T>>
+public readonly record struct Range<T> : IRange<T>, IEquatable<Range<T>>
 	where T : IComparable<T>
 {
 	public Range(
@@ -17,6 +15,7 @@ public readonly struct Range<T> : IRange<T>, IEquatable<Range<T>>
 		T high)
 	{
 		Range.AssertIsValid(low, high);
+
 		Low = low;
 		High = high;
 	}
@@ -41,34 +40,8 @@ public readonly struct Range<T> : IRange<T>, IEquatable<Range<T>>
 		high = High;
 	}
 
-	/// <inheritdoc />
 	public override string ToString()
 		=> $"Range<{typeof(T)}>[{Low} - {High}]";
-
-	/// <inheritdoc />
-	public bool Equals(Range<T> other)
-		=> EqualityComparer<T>.Default.Equals(Low, other.Low)
-		&& EqualityComparer<T>.Default.Equals(High, other.High);
-
-	/// <inheritdoc />
-	public override bool Equals(object range)
-		=> range is Range<T> r && Equals(r);
-
-#if NETSTANDARD2_1_OR_GREATER
-	public override int GetHashCode()
-		=> HashCode.Combine(Low, High);
-#else
-	public override int GetHashCode()
-	{
-		int hashCode = 593764356;
-		hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(Low);
-		hashCode = hashCode * -1521134295 + EqualityComparer<T>.Default.GetHashCode(High);
-		return hashCode;
-	}
-#endif
-
-	public static bool operator ==(Range<T> left, Range<T> right) => left.Equals(right);
-	public static bool operator !=(Range<T> left, Range<T> right) => !left.Equals(right);
 }
 
 
