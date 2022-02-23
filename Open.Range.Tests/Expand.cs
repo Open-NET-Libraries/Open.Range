@@ -5,7 +5,6 @@ namespace Open.RangeTests;
 
 public static class Expand
 {
-
 	[Theory]
 	[InlineData(-1, 5, 1)]
 	[InlineData(10, 20, 15)]

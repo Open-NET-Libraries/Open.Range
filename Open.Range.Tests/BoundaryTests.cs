@@ -101,7 +101,6 @@ public class BoundaryTests
 		(a >= c).Should().BeTrue();
 		a.GetHashCode().Should().NotBe(c.GetHashCode());
 
-
 		d = Boundary.Create(value, !inclusive);
 		d.Equals(c).Should().BeFalse();
 		d.CompareTo(c).Should().BePositive();
@@ -120,8 +119,6 @@ public class BoundaryTests
 		a.Equals(d).Should().BeFalse();
 		Assert.Throws<ArgumentException>(
 			() => a.CompareTo(d));
-
-
 	}
 
 	record B(object Value, bool Inclusive) : IBoundary

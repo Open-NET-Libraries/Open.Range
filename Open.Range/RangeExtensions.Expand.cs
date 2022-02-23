@@ -71,13 +71,13 @@ public static partial class RangeExtensions
 		=> range.Expand(expansion.Low).Expand(expansion.High);
 
 	/// <summary>
-	/// Attempts to derive the intersection of the 
+	/// Attempts to derive the intersection of the
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	/// <param name="range"></param>
 	/// <param name="other"></param>
 	/// <param name="result"></param>
-	/// <returns></returns>
+	/// <returns>true if the ranges intersect; otherwise false</returns>
 	public static bool TryIntersect<T>(
 		this Range<T> range, Range<T> other, out Range<T> result)
 		where T : IComparable<T>
@@ -134,7 +134,5 @@ public static partial class RangeExtensions
 		// All other possibilities.
 		result = new(cLow > 0 ? range.Low : other.Low, cHigh < 0 ? range.High : other.High);
 		return true;
-		
 	}
 }
-

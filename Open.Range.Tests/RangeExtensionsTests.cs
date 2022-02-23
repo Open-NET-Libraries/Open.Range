@@ -6,6 +6,7 @@ using Xunit;
 
 namespace Open.RangeTests;
 
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Roslynator", "RCS1196:Call extension method as instance method.")]
 public static class RangeExtensionsTests
 {
 	[Fact]
@@ -64,6 +65,5 @@ public static class RangeExtensionsTests
 		Enumerable.Empty<int>().Range(0)
 			.Equals(Range.Create(0, 0))
 			.Should().BeTrue();
-
 	}
 }

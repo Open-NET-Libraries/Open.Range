@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using static Open.Utility;
 
+[assembly:CLSCompliant(true)]
 namespace Open;
 
 /// <summary>
@@ -43,7 +44,6 @@ public readonly record struct Range<T> : IRange<T>, IEquatable<Range<T>>
 	public override string ToString()
 		=> $"Range<{typeof(T)}>[{Low} - {High}]";
 }
-
 
 public static class Range
 {

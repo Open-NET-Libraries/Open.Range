@@ -166,11 +166,16 @@ public static partial class RangeExtensions
 			var value = selector(item);
 			if (double.IsNaN(value)) return;
 			lock (templockMin)
+			{
 				if (value < min)
 					min = value;
+			}
+
 			lock (templockMax)
+			{
 				if (value > max)
 					max = value;
+			}
 		});
 
 		return new Range<double>(min, max);
@@ -288,7 +293,6 @@ public static partial class RangeExtensions
 		=> new(r1.Low.DivideBy(r2.Low), r1.High.DivideBy(r2.High));
 	#endregion
 
-
 	/// <summary>
 	/// Determines the difference in values (subtracting) from high to low.
 	/// </summary>
@@ -382,14 +386,19 @@ public static partial class RangeExtensions
 			throw new ArgumentNullException(nameof(target));
 		Contract.EndContractBlock();
 
-		var startDate = target.Low;
-		var endDate = target.High;
+		return DatesCore(target, inclusive);
 
-		for (var d = startDate; d < endDate; d = d.AddDays(1).Date)
-			yield return d.Date;
+		static IEnumerable<DateTime> DatesCore(IRange<DateTime> target, bool inclusive)
+		{
+			var startDate = target.Low;
+			var endDate = target.High;
 
-		if (inclusive && startDate != endDate)
-			yield return endDate;
+			for (var d = startDate; d < endDate; d = d.AddDays(1).Date)
+				yield return d.Date;
+
+			if (inclusive && startDate != endDate)
+				yield return endDate;
+		}
 	}
 
 	public static void UpdateMinMax<T>(this T value, ref T min, ref T max)
@@ -429,5 +438,4 @@ public static partial class RangeExtensions
 
 	public static double Transpose(this double value, Range<double> source, Range<double> target)
 		=> value.Transpose(source.Low, source.High, target.Low, target.High);
-
 }

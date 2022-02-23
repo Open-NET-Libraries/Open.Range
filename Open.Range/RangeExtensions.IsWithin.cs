@@ -17,7 +17,7 @@ public static partial class RangeExtensions
 		where T : IComparable<T>
 	{
 		if (range is null) throw new ArgumentNullException(nameof(range));
-		range.AssertIsValidRange();  
+		range.AssertIsValidRange();
 		if (IsNaN(value))
 			return false;
 		var low = value.CompareTo(range.Low);
