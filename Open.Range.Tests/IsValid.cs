@@ -47,7 +47,7 @@ public static class IsValid
 		Range.IsValid(a, b).Should().BeFalse();
 		b = Boundary.Create(high, true);
 		Range.IsValid(a, b).Should().BeFalse();
-		
+
 		Range.IsValid(new TestComparable1(), new TestComparable1())
 			.Should().BeFalse();
 		Assert.Throws<InvalidOperationException>(

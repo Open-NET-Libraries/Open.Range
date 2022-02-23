@@ -45,7 +45,6 @@ public static class RangeEquality
 				Assert.Throws<ArgumentException>(
 					() => Range.Above(low).To(high));
 			}
-
 		}
 
 		{

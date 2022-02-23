@@ -46,5 +46,4 @@ public class RangeBasic
 			return s;
 		}
 	}
-
 }

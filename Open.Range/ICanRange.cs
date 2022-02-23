@@ -5,8 +5,11 @@
 /// </summary>
 public interface ICanRange
 {
+	/// <summary>
+	/// Checks to see if <paramref name="other"/> can be ranged with this instance.
+	/// </summary>
 	/// <returns>
-	/// Returns true if this can be ranged with <paramref name="other"/>; otherwise false.
+	/// true if this can be ranged with <paramref name="other"/>; otherwise false.
 	/// </returns>
 	bool CanRangeWith(object other);
 }
