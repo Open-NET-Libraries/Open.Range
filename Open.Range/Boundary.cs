@@ -73,7 +73,7 @@ public readonly record struct Boundary<T>
 	public Boundary(T value, bool inclusive)
 	{
 		if (value is null) throw new ArgumentNullException(nameof(value));
-		if (IsNaN(value)) throw new ArgumentException("Boundaries cannot be NaN.");
+		if (IsNaN(value)) throw new ArgumentException("Boundaries cannot be NaN.", nameof(value));
 		Value = value;
 		Inclusive = inclusive;
 	}
@@ -100,7 +100,7 @@ public readonly record struct Boundary<T>
 	{
 		var c = Value.CompareTo(other.Value);
 		if (Inclusive != other.Inclusive && c == 0)
-			throw new ArgumentException("Cannot compare an inclusive against a non-inclusive of equal value.");
+			throw new ArgumentException("Cannot compare an inclusive against a non-inclusive of equal value.", nameof(other));
 		return c;
 	}
 
