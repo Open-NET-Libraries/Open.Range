@@ -23,6 +23,8 @@ public static class RangeExtensionsTests
 		Assert.Throws<ArgumentNullException>(
 			() => RangeExtensions.Range((IEnumerable<int>)null, (Func<int, double>)null));
 		Assert.Throws<ArgumentNullException>(
+			() => RangeExtensions.Range(Enumerable.Empty<int>(), (Func<int, double>)null));
+		Assert.Throws<ArgumentNullException>(
 			() => RangeExtensions.Range(Enumerable.Empty<int>().AsParallel(), null));
 		Assert.Throws<ArgumentNullException>(
 			() => RangeExtensions.Range(Enumerable.Empty<int>(), 0, null));
